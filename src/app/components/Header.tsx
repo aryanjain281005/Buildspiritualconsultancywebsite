@@ -4,7 +4,7 @@ import { Link, useNavigate, useLocation } from 'react-router';
 import { Sun, Moon, Menu, X, ArrowRight } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
-import logoImg from '../../imports/image-5.png';
+import logoImg from '../../imports/image-6.png';
 
 const navIds = ['home', 'about', 'courses', 'consultancy', 'gallery', 'testimonials', 'faq', 'contact'];
 

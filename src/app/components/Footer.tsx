@@ -5,7 +5,7 @@ import {
   MapPin, Heart, ArrowRight, ExternalLink
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
-import logoImg from '../../imports/image-5.png';
+import logoImg from '../../imports/image-6.png';
 
 const quickLinks = [
   { label: 'Home', id: 'home' },
