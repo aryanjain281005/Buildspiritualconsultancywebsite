@@ -68,7 +68,7 @@ export default function Testimonials() {
                 <StarRating rating={featured.rating} />
                 <blockquote className="text-xl md:text-2xl text-[#1E1048] dark:text-[#EDE9FF] mt-5 mb-8 leading-relaxed"
                   style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic', fontWeight: 400 }}>
-                  "{featured.review}"
+                  "{featured.fullReview}"
                 </blockquote>
                 <div className="flex items-center gap-4">
                   <Avatar initials={featured.initials} color={featured.color} />

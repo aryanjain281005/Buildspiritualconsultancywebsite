@@ -1,10 +1,11 @@
 import { motion } from 'motion/react';
 import { Link } from 'react-router';
 import {
-  Sparkles, Instagram, MessageCircle, Mail, Phone,
+  Instagram, MessageCircle, Mail, Phone,
   MapPin, Heart, ArrowRight, ExternalLink
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import logoImg from '../../imports/image-5.png';
 
 const quickLinks = [
   { label: 'Home', id: 'home' },
@@ -96,14 +97,13 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
           {/* Brand Column */}
           <div className="lg:col-span-1">
-            <div className="flex items-center gap-2.5 mb-5">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg" style={{ background: 'linear-gradient(135deg, #7C3AED, #EC4899)' }}>
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <span className="text-white font-semibold" style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.15rem', fontWeight: 700 }}>VYANA SOUL</span>
-                <div className="text-purple-400/70 leading-none" style={{ fontSize: '0.58rem', letterSpacing: '0.12em', marginTop: '2px' }}>{t.footer.taglineSmall}</div>
-              </div>
+            <div className="mb-5">
+              <img
+                src={logoImg}
+                alt="Vyana Soul"
+                className="h-20 w-auto object-contain"
+                style={{ mixBlendMode: 'screen' }}
+              />
             </div>
             <p className="text-purple-300/60 text-sm leading-relaxed mb-6">{t.footer.brandDesc}</p>
             <div className="flex gap-3">

@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link, useNavigate, useLocation } from 'react-router';
-import { Sun, Moon, Menu, X, Sparkles, ArrowRight } from 'lucide-react';
+import { Sun, Moon, Menu, X, ArrowRight } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
+import logoImg from '../../imports/image-5.png';
 
 const navIds = ['home', 'about', 'courses', 'consultancy', 'gallery', 'testimonials', 'faq', 'contact'];
 
@@ -81,18 +82,8 @@ export default function Header() {
         <div className="container mx-auto px-4 max-w-7xl">
           <div className="flex items-center justify-between h-16 md:h-18">
             {/* Logo */}
-            <motion.button whileHover={{ scale: 1.02 }} onClick={() => handleNavClick('home')} className="flex items-center gap-2.5 flex-shrink-0">
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center shadow-lg" style={{ background: 'linear-gradient(135deg, #7C3AED, #EC4899)' }}>
-                <Sparkles className="w-4 h-4 text-white" />
-              </div>
-              <div>
-                <span className="text-[#1E1048] dark:text-white font-semibold tracking-wide text-base" style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.15rem', fontWeight: 700 }}>
-                  VYANA SOUL
-                </span>
-                <div className="text-[#7C3AED] dark:text-[#A78BFA] leading-none" style={{ fontSize: '0.6rem', letterSpacing: '0.15em', fontWeight: 500, marginTop: '1px' }}>
-                  {t.footer.taglineSmall}
-                </div>
-              </div>
+            <motion.button whileHover={{ scale: 1.02 }} onClick={() => handleNavClick('home')} className="flex items-center flex-shrink-0">
+              <img src={logoImg} alt="Vyana Soul" className="h-10 md:h-12 w-auto object-contain" />
             </motion.button>
 
             {/* Desktop Nav */}

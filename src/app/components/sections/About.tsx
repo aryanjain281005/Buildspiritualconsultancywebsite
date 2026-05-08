@@ -1,12 +1,11 @@
 import { motion } from 'motion/react';
-import { Heart, Eye, TrendingUp, Users, Award, Globe, Sparkles } from 'lucide-react';
+import { Heart, Eye, TrendingUp, Users, Sparkles } from 'lucide-react';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
 import { useLanguage } from '../../context/LanguageContext';
 import rekhaBalaImg from '@/imports/image-4.png';
+import aboutImg from '@/imports/WhatsApp_Image_2026-05-01_at_9.03.46_PM.jpeg';
 
 const valueIcons = [Heart, Eye, TrendingUp, Users];
-const achievementIcons = [Users, Globe, Award, Sparkles];
-const achievementValues = ['2,500+', '25+', '98%'];
 
 export default function About() {
   const { t } = useLanguage();
@@ -32,7 +31,7 @@ export default function About() {
         <div className="grid lg:grid-cols-2 gap-16 items-center mb-24">
           <motion.div initial={{ opacity: 0, x: -40 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }} className="relative">
             <div className="relative rounded-3xl overflow-hidden shadow-2xl" style={{ height: '500px' }}>
-              <ImageWithFallback src={rekhaBalaImg} alt="Rekha Bala - Spiritual meditation and practice" className="w-full h-full object-cover" />
+              <ImageWithFallback src={aboutImg} alt="Rekha Bala - Spiritual meditation and practice" className="w-full h-full object-cover" />
               <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(30,16,72,0.6) 0%, transparent 50%)' }} />
             </div>
             <motion.div initial={{ opacity: 0, scale: 0.8 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.4 }}
@@ -58,6 +57,7 @@ export default function About() {
               <p>{t.about.p1}</p>
               <p>{t.about.p2}</p>
               <p>{t.about.p3}</p>
+              <p>{t.about.p4}</p>
             </div>
             <div className="flex flex-wrap gap-3">
               {t.about.tags.map((tag) => (
@@ -84,6 +84,11 @@ export default function About() {
             <div className="md:col-span-2">
               <h3 className="text-2xl md:text-3xl text-[#1E1048] dark:text-[#EDE9FF] mb-4">{t.about.founderQuote}</h3>
               <p className="text-[#4B5563] dark:text-[#9CA3AF] leading-relaxed">{t.about.founderDesc}</p>
+              <div className="mt-4 space-y-3 text-[#4B5563] dark:text-[#9CA3AF] leading-relaxed text-sm">
+                <p>{t.about.founderExtra1}</p>
+                <p>{t.about.founderExtra2}</p>
+                <p>{t.about.founderExtra3}</p>
+              </div>
             </div>
           </div>
         </motion.div>
@@ -110,26 +115,6 @@ export default function About() {
             })}
           </div>
         </div>
-
-        {/* Achievement Stats */}
-        <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {t.about.achievementsLabels.map((label, i) => {
-            const Icon = achievementIcons[i];
-            return (
-              <motion.div key={i} whileHover={{ scale: 1.05 }}
-                className="text-center p-6 rounded-2xl bg-white dark:bg-[#130D2A] border border-purple-50 dark:border-purple-900/20 shadow-sm">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3" style={{ background: 'linear-gradient(135deg, #7C3AED, #EC4899)' }}>
-                  <Icon className="w-6 h-6 text-white" />
-                </div>
-                <div className="text-3xl text-[#1E1048] dark:text-[#EDE9FF] mb-1" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 700 }}>
-                  {achievementValues[i]}
-                </div>
-                <div className="text-[#6B7280] dark:text-[#9CA3AF] text-sm">{label}</div>
-              </motion.div>
-            );
-          })}
-        </motion.div>
       </div>
     </section>
   );
