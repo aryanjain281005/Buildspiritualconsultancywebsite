@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link, useNavigate, useLocation } from 'react-router';
-import { Sun, Moon, Menu, X, ArrowRight } from 'lucide-react';
+import { Sun, Moon, Menu, X, ArrowRight, LogIn, User } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 import logoImg from '../../imports/image-6.png';
 
 const navIds = ['home', 'about', 'courses', 'consultancy', 'gallery', 'testimonials', 'faq', 'contact'];
@@ -11,6 +12,7 @@ const navIds = ['home', 'about', 'courses', 'consultancy', 'gallery', 'testimoni
 export default function Header() {
   const { theme, toggleTheme, isDark } = useTheme();
   const { lang, setLang, t } = useLanguage();
+  const { user, openLoginModal } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -150,6 +152,31 @@ export default function Header() {
                 style={{ background: 'linear-gradient(135deg, #7C3AED, #6D28D9)' }}>
                 {t.nav.bookNow}
                 <ArrowRight className="w-3.5 h-3.5" />
+              </motion.button>
+
+              {/* Login / User Button */}
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => user ? navigate('/dashboard') : openLoginModal()}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all"
+                style={{
+                  background: user ? 'linear-gradient(135deg, #7C3AED, #6D28D9)' : isDark ? 'rgba(124,58,237,0.12)' : 'rgba(124,58,237,0.08)',
+                  color: user ? 'white' : isDark ? 'rgba(237,233,255,0.85)' : '#7C3AED',
+                  border: `1px solid ${isDark ? 'rgba(124,58,237,0.3)' : 'rgba(124,58,237,0.2)'}`,
+                }}
+                aria-label={user ? 'Dashboard' : 'Login'}
+              >
+                {user ? (
+                  <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-white text-xs font-bold">
+                    {user.name.charAt(0).toUpperCase()}
+                  </div>
+                ) : (
+                  <LogIn className="w-4 h-4" />
+                )}
+                <span className="hidden sm:inline">
+                  {user ? user.name.split(' ')[0] : 'Login'}
+                </span>
               </motion.button>
 
               {/* Hamburger */}

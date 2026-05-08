@@ -2,6 +2,7 @@ import { Outlet, useLocation } from 'react-router';
 import { useEffect } from 'react';
 import Header from './Header';
 import Footer from './Footer';
+import LoginModal from './LoginModal';
 
 export function Layout() {
   const location = useLocation();
@@ -26,6 +27,7 @@ export function Layout() {
         <Outlet />
       </main>
       <Footer />
+      <LoginModal />
     </div>
   );
 }
