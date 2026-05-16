@@ -4,14 +4,17 @@ import { useNavigate } from 'react-router';
 import {
   LayoutDashboard, BookOpen, Calendar, User, LogOut,
   Plus, X, Clock, CheckCircle2, XCircle, ChevronRight,
-  Sparkles, Phone, Mail, Bell, Settings,
+  Sparkles, Phone, Mail, Bell, Settings, Shield,
 } from 'lucide-react';
-import { useAuth, apiFetch } from '../context/AuthContext';
+import { useAuth, apiFetch, getSupabase } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 
 // ── Types ──────────────────────────────────────────────────
 interface Booking {
   id: string;
+  userId: string;
+  userName?: string;
+  userEmail?: string;
   service: string;
   date: string;
   time: string;
@@ -153,7 +156,9 @@ function NewBookingModal({
 
 // ── Sidebar nav items ────────────────────────────────────────
 type NavKey = 'overview' | 'bookings' | 'courses' | 'profile';
-const NAV: { key: NavKey; label: string; icon: React.ReactNode }[] = [
+type AdminNavKey = NavKey | 'admin';
+
+const BASE_NAV: { key: NavKey; label: string; icon: React.ReactNode }[] = [
   { key: 'overview',  label: 'Overview',  icon: <LayoutDashboard className="w-4 h-4" /> },
   { key: 'bookings',  label: 'Bookings',  icon: <Calendar className="w-4 h-4" /> },
   { key: 'courses',   label: 'My Courses', icon: <BookOpen className="w-4 h-4" /> },
@@ -167,8 +172,13 @@ export default function Dashboard() {
   const { user, accessToken, logout, loading: authLoading } = useAuth();
   const { isDark } = useTheme();
   const navigate = useNavigate();
+  const supabase = getSupabase();
+  const isAdmin = user?.role === 'admin';
+  const navItems = isAdmin
+    ? [...BASE_NAV, { key: 'admin' as const, label: 'Admin Dashboard', icon: <Shield className="w-4 h-4" /> }]
+    : BASE_NAV;
 
-  const [activeNav, setActiveNav] = useState<NavKey>('overview');
+  const [activeNav, setActiveNav] = useState<AdminNavKey>(isAdmin ? 'admin' : 'overview');
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [fetchLoading, setFetchLoading] = useState(false);
@@ -188,10 +198,27 @@ export default function Dashboard() {
     setFetchError('');
     try {
       const [bData, eData] = await Promise.all([
-        apiFetch('/bookings', accessToken),
+        supabase
+          .from('bookings')
+          .select('id, user_id, user_name, user_email, service, booking_date, booking_time, notes, status, created_at, updated_at')
+          .order('created_at', { ascending: false }),
         apiFetch('/enrollments', accessToken),
       ]);
-      setBookings(bData.bookings ?? []);
+
+      if (bData.error) throw new Error(bData.error.message);
+
+      setBookings((bData.data ?? []).map((booking) => ({
+        id: booking.id,
+        userId: booking.user_id,
+        userName: booking.user_name,
+        userEmail: booking.user_email,
+        service: booking.service,
+        date: booking.booking_date,
+        time: booking.booking_time,
+        notes: booking.notes,
+        status: booking.status,
+        createdAt: booking.created_at,
+      })));
       setEnrollments(eData.enrollments ?? []);
     } catch (err: unknown) {
       setFetchError(err instanceof Error ? err.message : 'Failed to load data.');
@@ -207,14 +234,41 @@ export default function Dashboard() {
     if (!accessToken) return;
     setBookingLoading(true);
     try {
-      const data = await apiFetch('/bookings', accessToken, {
-        method: 'POST',
-        body: JSON.stringify(form),
-      });
-      setBookings(prev => [data.booking, ...prev]);
+      const bookingId = `bk_${Date.now()}`;
+      const { data, error } = await supabase
+        .from('bookings')
+        .insert({
+          id: bookingId,
+          user_id: user?.id,
+          user_name: user?.name ?? 'User',
+          user_email: user?.email ?? '',
+          service: form.service,
+          booking_date: form.date,
+          booking_time: form.time ?? '',
+          notes: form.notes ?? '',
+          status: 'pending',
+        })
+        .select('id, user_id, user_name, user_email, service, booking_date, booking_time, notes, status, created_at, updated_at')
+        .single();
+
+      if (error) throw new Error(error.message);
+
+      setBookings(prev => [{
+        id: data.id,
+        userId: data.user_id,
+        userName: data.user_name,
+        userEmail: data.user_email,
+        service: data.service,
+        date: data.booking_date,
+        time: data.booking_time,
+        notes: data.notes,
+        status: data.status,
+        createdAt: data.created_at,
+      }, ...prev].filter(Boolean));
       setShowNewBooking(false);
       setActiveNav('bookings');
     } catch (err: unknown) {
+      setFetchError(err instanceof Error ? err.message : 'Failed to create booking.');
       console.log('Booking error:', err);
     } finally {
       setBookingLoading(false);
@@ -224,10 +278,60 @@ export default function Dashboard() {
   const handleCancelBooking = async (bookingId: string) => {
     if (!accessToken) return;
     try {
-      const data = await apiFetch(`/bookings/${bookingId}`, accessToken, { method: 'DELETE' });
-      setBookings(prev => prev.map(b => b.id === bookingId ? data.booking : b));
+      const { data, error } = await supabase
+        .from('bookings')
+        .update({ status: 'cancelled', updated_at: new Date().toISOString() })
+        .eq('id', bookingId)
+        .select('id, user_id, user_name, user_email, service, booking_date, booking_time, notes, status, created_at, updated_at')
+        .maybeSingle();
+
+      if (error) throw new Error(error.message);
+      if (!data) throw new Error('Booking not found.');
+
+      setBookings(prev => prev.map(b => (b && b.id === bookingId ? {
+        id: data.id,
+        userId: data.user_id,
+        userName: data.user_name,
+        userEmail: data.user_email,
+        service: data.service,
+        date: data.booking_date,
+        time: data.booking_time,
+        notes: data.notes,
+        status: data.status,
+        createdAt: data.created_at,
+      } : b)).filter(Boolean));
     } catch (err) {
       console.log('Cancel error:', err);
+    }
+  };
+
+  const handleUpdateBookingStatus = async (bookingId: string, status: Booking['status']) => {
+    if (!accessToken) return;
+    try {
+      const { data, error } = await supabase
+        .from('bookings')
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq('id', bookingId)
+        .select('id, user_id, user_name, user_email, service, booking_date, booking_time, notes, status, created_at, updated_at')
+        .maybeSingle();
+
+      if (error) throw new Error(error.message);
+      if (!data) throw new Error('Booking not found.');
+
+      setBookings(prev => prev.map(b => (b && b.id === bookingId ? {
+        id: data.id,
+        userId: data.user_id,
+        userName: data.user_name,
+        userEmail: data.user_email,
+        service: data.service,
+        date: data.booking_date,
+        time: data.booking_time,
+        notes: data.notes,
+        status: data.status,
+        createdAt: data.created_at,
+      } : b)).filter(Boolean));
+    } catch (err) {
+      console.log('Booking status update error:', err);
     }
   };
 
@@ -249,11 +353,14 @@ export default function Dashboard() {
 
   if (!user) return null;
 
+  const validBookings = bookings.filter((booking): booking is Booking => Boolean(booking && booking.status));
+
   // ── Stats ─────────────────────────────────────────────────
-  const activeBookings = bookings.filter(b => b.status !== 'cancelled').length;
-  const pendingBookings = bookings.filter(b => b.status === 'pending').length;
+  const activeBookings = validBookings.filter(b => b.status !== 'cancelled').length;
+  const pendingBookings = validBookings.filter(b => b.status === 'pending').length;
+  const totalBookings = validBookings.length;
   const stats = [
-    { label: 'Total Bookings', value: activeBookings, icon: <Calendar className="w-5 h-5" />, color: STAT_COLORS[0] },
+    { label: isAdmin ? 'All Bookings' : 'Total Bookings', value: totalBookings, icon: <Calendar className="w-5 h-5" />, color: STAT_COLORS[0] },
     { label: 'Pending',        value: pendingBookings, icon: <Clock className="w-5 h-5" />,    color: STAT_COLORS[1] },
     { label: 'Courses',        value: enrollments.length, icon: <BookOpen className="w-5 h-5" />, color: STAT_COLORS[2] },
   ];
@@ -271,7 +378,7 @@ export default function Dashboard() {
 
       {/* Nav */}
       <nav className="flex flex-col gap-1 flex-1">
-        {NAV.map(item => (
+        {navItems.map(item => (
           <button key={item.key}
             onClick={() => { setActiveNav(item.key); setSidebarOpen(false); }}
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left"
@@ -356,7 +463,7 @@ export default function Dashboard() {
       </div>
 
       {/* Recent bookings preview */}
-      {bookings.length > 0 && (
+      {validBookings.length > 0 && (
         <div className="rounded-2xl p-5" style={{ background: cardBg, border: `1px solid ${cardBorder}` }}>
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-sm" style={{ color: textPrimary }}>Recent Bookings</h3>
@@ -365,12 +472,17 @@ export default function Dashboard() {
               View all <ChevronRight className="w-3 h-3" />
             </button>
           </div>
-          {bookings.slice(0, 3).map(b => (
+          {validBookings.slice(0, 3).map(b => (
             <div key={b.id} className="flex items-center justify-between py-2.5 border-b last:border-0"
               style={{ borderColor: cardBorder }}>
               <div>
                 <p className="text-sm font-medium" style={{ color: textPrimary }}>{b.service}</p>
                 <p className="text-xs mt-0.5" style={{ color: textMuted }}>{new Date(b.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}{b.time ? ` · ${b.time}` : ''}</p>
+                {isAdmin && (
+                  <p className="text-xs mt-0.5" style={{ color: textMuted }}>
+                    Booked by {b.userName ?? 'Unknown user'} {b.userEmail ? `· ${b.userEmail}` : ''}
+                  </p>
+                )}
               </div>
               <StatusBadge status={b.status} />
             </div>
@@ -396,13 +508,13 @@ export default function Dashboard() {
   const BookingsPanel = () => (
     <div>
       <div className="flex items-center justify-between mb-5">
-        <h2 className="text-lg font-bold" style={{ color: textPrimary }}>My Bookings</h2>
+        <h2 className="text-lg font-bold" style={{ color: textPrimary }}>{isAdmin ? 'All Bookings' : 'My Bookings'}</h2>
         <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}
           onClick={() => setShowNewBooking(true)}
           disabled={bookingLoading}
           className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-sm font-medium"
           style={{ background: 'linear-gradient(135deg, #7C3AED, #6D28D9)' }}>
-          <Plus className="w-4 h-4" /> New Booking
+          <Plus className="w-4 h-4" /> {isAdmin ? 'Open Booking' : 'New Booking'}
         </motion.button>
       </div>
 
@@ -412,20 +524,22 @@ export default function Dashboard() {
         <div className="rounded-xl p-4 text-sm" style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }}>
           {fetchError}
         </div>
-      ) : bookings.length === 0 ? (
+      ) : validBookings.length === 0 ? (
         <div className="rounded-2xl p-12 text-center" style={{ background: cardBg, border: `1px solid ${cardBorder}` }}>
           <Calendar className="w-10 h-10 mx-auto mb-3 opacity-30" style={{ color: '#7C3AED' }} />
-          <p className="font-medium mb-1" style={{ color: textPrimary }}>No bookings yet</p>
-          <p className="text-sm mb-4" style={{ color: textMuted }}>Book your first Akashic session with Rekha Bala.</p>
+          <p className="font-medium mb-1" style={{ color: textPrimary }}>{isAdmin ? 'No bookings yet' : 'No bookings yet'}</p>
+          <p className="text-sm mb-4" style={{ color: textMuted }}>
+            {isAdmin ? 'New bookings will appear here as soon as clients submit them.' : 'Book your first Akashic session with Rekha Bala.'}
+          </p>
           <button onClick={() => setShowNewBooking(true)}
             className="px-5 py-2 rounded-xl text-white text-sm font-medium"
             style={{ background: 'linear-gradient(135deg, #7C3AED, #6D28D9)' }}>
-            Book Now
+            {isAdmin ? 'Create Booking' : 'Book Now'}
           </button>
         </div>
       ) : (
         <div className="space-y-3">
-          {bookings.map((b, i) => (
+          {validBookings.map((b, i) => (
             <motion.div key={b.id}
               initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
               className="rounded-2xl p-5" style={{ background: cardBg, border: `1px solid ${cardBorder}` }}>
@@ -443,11 +557,40 @@ export default function Dashboard() {
                       </span>
                     )}
                   </div>
+                  {isAdmin && (
+                    <p className="text-xs mt-2" style={{ color: textMuted }}>
+                      Booked by {b.userName ?? 'Unknown user'} {b.userEmail ? `· ${b.userEmail}` : ''}
+                    </p>
+                  )}
                   {b.notes && <p className="text-xs mt-2 italic" style={{ color: textMuted }}>"{b.notes}"</p>}
                 </div>
                 <div className="flex flex-col items-end gap-2 flex-shrink-0">
                   <StatusBadge status={b.status} />
-                  {b.status === 'pending' && (
+                  {isAdmin ? (
+                    <div className="flex items-center gap-2 flex-wrap justify-end">
+                      {b.status === 'pending' && (
+                        <>
+                          <button onClick={() => handleUpdateBookingStatus(b.id, 'confirmed')}
+                            className="text-xs flex items-center gap-1 transition-opacity hover:opacity-80"
+                            style={{ color: '#16a34a' }}>
+                            <CheckCircle2 className="w-3 h-3" /> Accept
+                          </button>
+                          <button onClick={() => handleUpdateBookingStatus(b.id, 'cancelled')}
+                            className="text-xs flex items-center gap-1 transition-opacity hover:opacity-80"
+                            style={{ color: '#ef4444' }}>
+                            <X className="w-3 h-3" /> Decline
+                          </button>
+                        </>
+                      )}
+                      {b.status === 'confirmed' && (
+                        <button onClick={() => handleUpdateBookingStatus(b.id, 'cancelled')}
+                          className="text-xs flex items-center gap-1 transition-opacity hover:opacity-80"
+                          style={{ color: '#ef4444' }}>
+                          <X className="w-3 h-3" /> Cancel
+                        </button>
+                      )}
+                    </div>
+                  ) : b.status === 'pending' && (
                     <button onClick={() => handleCancelBooking(b.id)}
                       className="text-xs flex items-center gap-1 transition-opacity hover:opacity-80"
                       style={{ color: '#ef4444' }}>
@@ -462,6 +605,143 @@ export default function Dashboard() {
       )}
     </div>
   );
+
+  const AdminPanel = () => {
+    const pendingReview = validBookings.filter(b => b.status === 'pending');
+    const confirmedReview = validBookings.filter(b => b.status === 'confirmed');
+    const otherReview = validBookings.filter(b => b.status === 'cancelled');
+
+    return (
+      <div className="space-y-6">
+        <div className="rounded-2xl p-6 relative overflow-hidden"
+          style={{ background: 'linear-gradient(135deg, #0F172A 0%, #312E81 55%, #7C3AED 100%)' }}>
+          <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 80% 20%, white, transparent 60%)' }} />
+          <p className="text-white/70 text-sm mb-1">Admin access</p>
+          <h2 className="text-2xl font-bold text-white mb-1">Booking Review Dashboard</h2>
+          <p className="text-white/60 text-sm">Accept, decline, or confirm client bookings from one place.</p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-2xl p-4" style={{ background: cardBg, border: `1px solid ${cardBorder}` }}>
+            <p className="text-2xl font-bold" style={{ color: textPrimary }}>{pendingReview.length}</p>
+            <p className="text-xs mt-0.5" style={{ color: textMuted }}>Pending approvals</p>
+          </div>
+          <div className="rounded-2xl p-4" style={{ background: cardBg, border: `1px solid ${cardBorder}` }}>
+            <p className="text-2xl font-bold" style={{ color: textPrimary }}>{confirmedReview.length}</p>
+            <p className="text-xs mt-0.5" style={{ color: textMuted }}>Confirmed bookings</p>
+          </div>
+        </div>
+
+        <div className="rounded-2xl p-5" style={{ background: cardBg, border: `1px solid ${cardBorder}` }}>
+          <h3 className="font-semibold mb-2 text-sm" style={{ color: textPrimary }}>Pending requests</h3>
+          <p className="text-xs mb-4" style={{ color: textMuted }}>
+            Only pending bookings can be accepted or declined. Confirmed and cancelled bookings are shown below for reference.
+          </p>
+          {pendingReview.length === 0 ? (
+            <p className="text-sm" style={{ color: textMuted }}>No bookings waiting for approval right now.</p>
+          ) : (
+            <div className="space-y-3">
+              {pendingReview.map((b) => (
+                <div key={b.id} className="rounded-xl p-4" style={{ background: inputBg, border: `1px solid ${inputBorder}` }}>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <p className="font-semibold truncate" style={{ color: textPrimary }}>{b.service}</p>
+                      <p className="text-xs mt-1" style={{ color: textMuted }}>
+                        {new Date(b.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}{b.time ? ` · ${b.time}` : ''}
+                      </p>
+                      <p className="text-xs mt-1" style={{ color: textMuted }}>
+                        Booked by {b.userName ?? 'Unknown user'} {b.userEmail ? `· ${b.userEmail}` : ''}
+                      </p>
+                      {b.notes && <p className="text-xs mt-2 italic" style={{ color: textMuted }}>{b.notes}</p>}
+                    </div>
+                    <div className="flex flex-col gap-2 flex-shrink-0">
+                      <button onClick={() => handleUpdateBookingStatus(b.id, 'confirmed')}
+                        className="px-3 py-1.5 rounded-lg text-xs font-medium text-white"
+                        style={{ background: 'linear-gradient(135deg, #16a34a, #22c55e)' }}>
+                        Accept
+                      </button>
+                      <button onClick={() => handleUpdateBookingStatus(b.id, 'cancelled')}
+                        className="px-3 py-1.5 rounded-lg text-xs font-medium"
+                        style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.18)' }}>
+                        Decline
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="rounded-2xl p-5" style={{ background: cardBg, border: `1px solid ${cardBorder}` }}>
+          <h3 className="font-semibold mb-4 text-sm" style={{ color: textPrimary }}>All bookings</h3>
+          {validBookings.length === 0 ? (
+            <p className="text-sm" style={{ color: textMuted }}>There are no bookings yet. As soon as a client submits one, it will appear here.</p>
+          ) : (
+            <div className="space-y-3">
+              {validBookings.map((b) => (
+                <div key={b.id} className="rounded-xl p-4" style={{ background: inputBg, border: `1px solid ${inputBorder}` }}>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <p className="font-semibold truncate" style={{ color: textPrimary }}>{b.service}</p>
+                      <p className="text-xs mt-1" style={{ color: textMuted }}>
+                        {new Date(b.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}{b.time ? ` · ${b.time}` : ''}
+                      </p>
+                      <p className="text-xs mt-1" style={{ color: textMuted }}>
+                        Booked by {b.userName ?? 'Unknown user'} {b.userEmail ? `· ${b.userEmail}` : ''}
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                      <StatusBadge status={b.status} />
+                      {b.status === 'pending' && (
+                        <div className="flex gap-2">
+                          <button onClick={() => handleUpdateBookingStatus(b.id, 'confirmed')}
+                            className="px-3 py-1.5 rounded-lg text-xs font-medium text-white"
+                            style={{ background: 'linear-gradient(135deg, #16a34a, #22c55e)' }}>
+                            Accept
+                          </button>
+                          <button onClick={() => handleUpdateBookingStatus(b.id, 'cancelled')}
+                            className="px-3 py-1.5 rounded-lg text-xs font-medium"
+                            style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.18)' }}>
+                            Decline
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  {b.notes && <p className="text-xs mt-2 italic" style={{ color: textMuted }}>{b.notes}</p>}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {otherReview.length > 0 && (
+          <div className="rounded-2xl p-5" style={{ background: cardBg, border: `1px solid ${cardBorder}` }}>
+            <h3 className="font-semibold mb-4 text-sm" style={{ color: textPrimary }}>Cancelled bookings</h3>
+            <div className="space-y-3">
+              {otherReview.map((b) => (
+                <div key={b.id} className="rounded-xl p-4" style={{ background: inputBg, border: `1px solid ${inputBorder}` }}>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <p className="font-semibold truncate" style={{ color: textPrimary }}>{b.service}</p>
+                      <p className="text-xs mt-1" style={{ color: textMuted }}>
+                        {new Date(b.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}{b.time ? ` · ${b.time}` : ''}
+                      </p>
+                      <p className="text-xs mt-1" style={{ color: textMuted }}>
+                        Booked by {b.userName ?? 'Unknown user'} {b.userEmail ? `· ${b.userEmail}` : ''}
+                      </p>
+                    </div>
+                    <StatusBadge status={b.status} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const CoursesPanel = () => (
     <div>
@@ -602,7 +882,7 @@ export default function Dashboard() {
             </button>
             <div>
               <h1 className="font-bold text-sm" style={{ color: textPrimary }}>
-                {NAV.find(n => n.key === activeNav)?.label}
+                {navItems.find(n => n.key === activeNav)?.label}
               </h1>
               <p className="text-xs hidden sm:block" style={{ color: textMuted }}>
                 {user.name} · Vyana Soul
@@ -626,6 +906,7 @@ export default function Dashboard() {
               {activeNav === 'bookings'  && <BookingsPanel />}
               {activeNav === 'courses'   && <CoursesPanel />}
               {activeNav === 'profile'   && <ProfilePanel />}
+              {activeNav === 'admin'     && isAdmin && <AdminPanel />}
             </motion.div>
           </AnimatePresence>
         </div>

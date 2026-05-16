@@ -15,6 +15,7 @@ export function getSupabase(): SupabaseClient {
 }
 
 const SERVER_URL = `https://${projectId}.supabase.co/functions/v1/make-server-d03e957c`;
+const ADMIN_EMAILS = ['aryanjain281005@gmail.com', 'vyanasoul369@vyanasoul.com'];
 
 // ── Types ──────────────────────────────────────────────────
 export interface VyanaUser {
@@ -59,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     name: u.user_metadata?.name ?? u.user_metadata?.full_name ?? u.email?.split('@')[0] ?? 'User',
     email: u.email ?? '',
     avatar: u.user_metadata?.avatar_url,
-    role: u.user_metadata?.role ?? 'student',
+    role: (u.user_metadata?.role ?? (u.email && ADMIN_EMAILS.includes(u.email.toLowerCase()) ? 'admin' : 'student')),
   }), []);
 
   // Restore session on mount
@@ -70,9 +71,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ? mapUser(session.user) : null);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      setSession(nextSession);
+      setUser(nextSession?.user ? mapUser(nextSession.user) : null);
     });
 
     return () => subscription.unsubscribe();

@@ -5,6 +5,7 @@ import { createClient } from "npm:@supabase/supabase-js";
 import * as kv from "./kv_store.tsx";
 
 const app = new Hono();
+const ADMIN_EMAILS = ["aryanjain281005@gmail.com", "vyanasoul369@vyanasoul.com"];
 
 app.use('*', logger(console.log));
 
@@ -37,6 +38,32 @@ async function getAuthUserId(authHeader: string | null): Promise<string | null> 
   return user.id;
 }
 
+async function getAuthUser(authHeader: string | null) {
+  if (!authHeader) return null;
+  const token = authHeader.split(" ")[1];
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+  );
+  const { data: { user }, error } = await supabase.auth.getUser(token);
+  if (error || !user) return null;
+  return user;
+}
+
+function isAdminUser(user: { user_metadata?: Record<string, unknown> } | null) {
+  const email = typeof (user as { email?: unknown })?.email === "string"
+    ? String((user as { email?: string }).email).toLowerCase()
+    : "";
+  return user?.user_metadata?.role === "admin" || ADMIN_EMAILS.includes(email);
+}
+
+function bookingsClient() {
+  return createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+  );
+}
+
 // ─── AUTH: Signup ──────────────────────────────────────────
 app.post("/make-server-d03e957c/auth/signup", async (c) => {
   try {
@@ -51,7 +78,7 @@ app.post("/make-server-d03e957c/auth/signup", async (c) => {
     const { data, error } = await supabase.auth.admin.createUser({
       email,
       password,
-      user_metadata: { name },
+      user_metadata: { name, role: email.toLowerCase() === ADMIN_EMAIL ? "admin" : "student" },
       // Automatically confirm email since no email server configured
       email_confirm: true,
     });
@@ -71,11 +98,52 @@ app.post("/make-server-d03e957c/auth/signup", async (c) => {
 // GET /bookings — fetch bookings for the authenticated user
 app.get("/make-server-d03e957c/bookings", async (c) => {
   try {
-    const userId = await getAuthUserId(c.req.header("Authorization") ?? null);
-    if (!userId) return c.json({ error: "Unauthorized" }, 401);
+    const user = await getAuthUser(c.req.header("Authorization") ?? null);
+    if (!user) return c.json({ error: "Unauthorized" }, 401);
 
-    const results = await kv.getByPrefix(`booking:${userId}:`);
-    const bookings = results.map((r) => r.value);
+    const supabase = bookingsClient();
+
+    if (isAdminUser(user)) {
+      const { data, error } = await supabase
+        .from("bookings")
+        .select("id, user_id, user_name, user_email, service, booking_date, booking_time, notes, status, created_at, updated_at")
+        .order("created_at", { ascending: false });
+      if (error) return c.json({ error: error.message }, 500);
+
+      const bookings = (data ?? []).map((booking) => ({
+        id: booking.id,
+        userId: booking.user_id,
+        userName: booking.user_name,
+        userEmail: booking.user_email,
+        service: booking.service,
+        date: booking.booking_date,
+        time: booking.booking_time,
+        notes: booking.notes,
+        status: booking.status,
+        createdAt: booking.created_at,
+      }));
+      return c.json({ bookings });
+    }
+
+    const { data, error } = await supabase
+      .from("bookings")
+      .select("id, user_id, user_name, user_email, service, booking_date, booking_time, notes, status, created_at, updated_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+    if (error) return c.json({ error: error.message }, 500);
+
+    const bookings = (data ?? []).map((booking) => ({
+      id: booking.id,
+      userId: booking.user_id,
+      userName: booking.user_name,
+      userEmail: booking.user_email,
+      service: booking.service,
+      date: booking.booking_date,
+      time: booking.booking_time,
+      notes: booking.notes,
+      status: booking.status,
+      createdAt: booking.created_at,
+    }));
     return c.json({ bookings });
   } catch (err) {
     console.log("Get bookings error:", err);
@@ -86,8 +154,9 @@ app.get("/make-server-d03e957c/bookings", async (c) => {
 // POST /bookings — create a booking
 app.post("/make-server-d03e957c/bookings", async (c) => {
   try {
-    const userId = await getAuthUserId(c.req.header("Authorization") ?? null);
-    if (!userId) return c.json({ error: "Unauthorized" }, 401);
+    const user = await getAuthUser(c.req.header("Authorization") ?? null);
+    if (!user) return c.json({ error: "Unauthorized" }, 401);
+    const supabase = bookingsClient();
 
     const { service, date, time, notes } = await c.req.json();
     if (!service || !date) {
@@ -97,7 +166,9 @@ app.post("/make-server-d03e957c/bookings", async (c) => {
     const bookingId = `bk_${Date.now()}`;
     const booking = {
       id: bookingId,
-      userId,
+      userId: user.id,
+      userName: user.user_metadata?.name ?? user.user_metadata?.full_name ?? user.email ?? "User",
+      userEmail: user.email ?? "",
       service,
       date,
       time: time ?? "",
@@ -106,7 +177,21 @@ app.post("/make-server-d03e957c/bookings", async (c) => {
       createdAt: new Date().toISOString(),
     };
 
-    await kv.set(`booking:${userId}:${bookingId}`, booking);
+    const { error } = await supabase.from("bookings").insert({
+      id: booking.id,
+      user_id: booking.userId,
+      user_name: booking.userName,
+      user_email: booking.userEmail,
+      service: booking.service,
+      booking_date: booking.date,
+      booking_time: booking.time,
+      notes: booking.notes,
+      status: booking.status,
+      created_at: booking.createdAt,
+      updated_at: booking.createdAt,
+    });
+    if (error) return c.json({ error: error.message }, 500);
+
     return c.json({ booking });
   } catch (err) {
     console.log("Create booking error:", err);
@@ -117,19 +202,81 @@ app.post("/make-server-d03e957c/bookings", async (c) => {
 // DELETE /bookings/:id — cancel a booking
 app.delete("/make-server-d03e957c/bookings/:id", async (c) => {
   try {
-    const userId = await getAuthUserId(c.req.header("Authorization") ?? null);
-    if (!userId) return c.json({ error: "Unauthorized" }, 401);
+    const user = await getAuthUser(c.req.header("Authorization") ?? null);
+    if (!user) return c.json({ error: "Unauthorized" }, 401);
+
+    const supabase = bookingsClient();
 
     const bookingId = c.req.param("id");
-    const booking = await kv.get(`booking:${userId}:${bookingId}`);
-    if (!booking) return c.json({ error: "Booking not found" }, 404);
+    let query = supabase.from("bookings").update({ status: "cancelled", updated_at: new Date().toISOString() }).eq("id", bookingId);
+    if (!isAdminUser(user)) {
+      query = query.eq("user_id", user.id);
+    }
+    const { data, error } = await query.select("id, user_id, user_name, user_email, service, booking_date, booking_time, notes, status, created_at, updated_at").maybeSingle();
+    if (error) return c.json({ error: error.message }, 500);
+    if (!data) return c.json({ error: "Booking not found" }, 404);
 
-    const updated = { ...booking, status: "cancelled" };
-    await kv.set(`booking:${userId}:${bookingId}`, updated);
+    const updated = {
+      id: data.id,
+      userId: data.user_id,
+      userName: data.user_name,
+      userEmail: data.user_email,
+      service: data.service,
+      date: data.booking_date,
+      time: data.booking_time,
+      notes: data.notes,
+      status: data.status,
+      createdAt: data.created_at,
+    };
+
     return c.json({ booking: updated });
   } catch (err) {
     console.log("Cancel booking error:", err);
     return c.json({ error: `Error cancelling booking: ${err}` }, 500);
+  }
+});
+
+// PATCH /bookings/:id/status — update booking status for admin review
+app.patch("/make-server-d03e957c/bookings/:id/status", async (c) => {
+  try {
+    const user = await getAuthUser(c.req.header("Authorization") ?? null);
+    if (!user) return c.json({ error: "Unauthorized" }, 401);
+    if (!isAdminUser(user)) return c.json({ error: "Forbidden" }, 403);
+
+    const { status } = await c.req.json();
+    if (!["pending", "confirmed", "cancelled"].includes(status)) {
+      return c.json({ error: "status must be pending, confirmed, or cancelled." }, 400);
+    }
+
+    const supabase = bookingsClient();
+    const bookingId = c.req.param("id");
+    const { data, error } = await supabase
+      .from("bookings")
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq("id", bookingId)
+      .select("id, user_id, user_name, user_email, service, booking_date, booking_time, notes, status, created_at, updated_at")
+      .maybeSingle();
+
+    if (error) return c.json({ error: error.message }, 500);
+    if (!data) return c.json({ error: "Booking not found" }, 404);
+
+    const updated = {
+      id: data.id,
+      userId: data.user_id,
+      userName: data.user_name,
+      userEmail: data.user_email,
+      service: data.service,
+      date: data.booking_date,
+      time: data.booking_time,
+      notes: data.notes,
+      status: data.status,
+      createdAt: data.created_at,
+    };
+
+    return c.json({ booking: updated });
+  } catch (err) {
+    console.log("Update booking status error:", err);
+    return c.json({ error: `Error updating booking: ${err}` }, 500);
   }
 });
 
