@@ -16,8 +16,8 @@ export interface Course {
 export const courses: Course[] = [
   {
     id: '1',
-    title: 'Akaashic Foundation Course',
-    description: 'Begin your sacred journey into the Akaashic Records. Learn foundational concepts, opening meditations, and basic channeling techniques to access cosmic wisdom.',
+    title: 'Akashic Foundation Course',
+    description: 'Begin your sacred journey into the Akashic Records. Learn foundational concepts, opening meditations, and basic channeling techniques to access cosmic wisdom.',
     duration: '4 Weeks',
     level: 'Beginner',
     price: '₹4,999',
@@ -44,7 +44,7 @@ export const courses: Course[] = [
   {
     id: '3',
     title: 'Advanced Soul Mapping',
-    description: 'Master the art of comprehensive soul blueprint readings, life purpose mapping, and accessing the higher councils of the Akaashic dimension.',
+    description: 'Master the art of comprehensive soul blueprint readings, life purpose mapping, and accessing the higher councils of the Akashic dimension.',
     duration: '8 Weeks',
     level: 'Advanced',
     price: '₹12,999',
@@ -57,7 +57,7 @@ export const courses: Course[] = [
   {
     id: '4',
     title: 'Healing & Energy Clearance',
-    description: 'Learn powerful Akaashic-based healing techniques to clear karmic imprints, release energy blocks, and restore soul alignment for yourself and your clients.',
+    description: 'Learn powerful Akashic-based healing techniques to clear karmic imprints, release energy blocks, and restore soul alignment for yourself and your clients.',
     duration: '3 Weeks',
     level: 'All Levels',
     price: '₹3,999',
@@ -82,8 +82,8 @@ export const courses: Course[] = [
   },
   {
     id: '6',
-    title: 'Akaashic Channel Opening',
-    description: 'A gentle, supportive program designed to safely open your Akaashic channel through breath work, sacred prayers, and consciousness expansion practices.',
+    title: 'Akashic Channel Opening',
+    description: 'A gentle, supportive program designed to safely open your Akashic channel through breath work, sacred prayers, and consciousness expansion practices.',
     duration: '2 Weeks',
     level: 'Beginner',
     price: '₹2,999',

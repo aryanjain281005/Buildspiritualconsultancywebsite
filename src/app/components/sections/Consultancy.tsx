@@ -13,7 +13,6 @@ interface FormData {
   email: string;
   phone: string;
   service: string;
-  preferredDate: string;
   preferredTime: string;
   message: string;
 }
@@ -109,6 +108,12 @@ export default function Consultancy() {
                 </div>
                 <span>vyanasoul369@vyanasoul.com</span>
               </a>
+              <a href="mailto:vyanasoul369@gmail.com" className="flex items-center gap-3 text-purple-200/70 hover:text-white transition-colors group">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center border border-white/15 group-hover:border-white/30 transition-colors" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                  <Mail className="w-4 h-4" />
+                </div>
+                <span>vyanasoul369@gmail.com</span>
+              </a>
             </div>
           </motion.div>
 
@@ -171,20 +176,14 @@ export default function Consultancy() {
                     </div>
                   </div>
 
-                  <div className="grid sm:grid-cols-2 gap-5">
-                    <div>
-                      <label className="text-purple-200/80 text-sm mb-1.5 block">{t.consultancy.labelDate}</label>
-                      <input {...register('preferredDate')} type="date"
-                        className="w-full px-4 py-3 rounded-xl border border-white/15 text-white text-sm focus:outline-none"
-                        style={{ background: 'rgba(255,255,255,0.07)', colorScheme: 'dark' }} />
-                    </div>
+                  <div className="grid sm:grid-cols-1 gap-5">
                     <div>
                       <label className="text-purple-200/80 text-sm mb-1.5 block">{t.consultancy.labelTime}</label>
                       <select {...register('preferredTime')}
                         className="w-full px-4 py-3 rounded-xl border border-white/15 text-white text-sm focus:outline-none appearance-none"
                         style={{ background: 'rgba(30,16,72,0.8)' }}>
                         <option value="" style={{ background: '#1E1048' }}>{t.consultancy.selectTime}</option>
-                        {['9:00 AM – 10:30 AM', '11:00 AM – 12:30 PM', '2:00 PM – 3:30 PM', '4:00 PM – 5:30 PM', '6:00 PM – 7:30 PM', '8:00 PM – 9:30 PM'].map(slot => (
+                        {['2:00 PM – 3:00 PM', '3:00 PM – 4:00 PM', '4:00 PM – 5:00 PM', '5:00 PM – 6:00 PM', '6:00 PM – 7:00 PM', '7:00 PM – 8:00 PM', '8:00 PM – 9:00 PM'].map(slot => (
                           <option key={slot} value={slot} style={{ background: '#1E1048' }}>{slot}</option>
                         ))}
                       </select>

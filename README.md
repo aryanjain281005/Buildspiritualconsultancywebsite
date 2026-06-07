@@ -1,7 +1,7 @@
 
-  # Build Spiritual Consultancy Website
+  # VyanaSoul
 
-  This is a code bundle for Build Spiritual Consultancy Website. The original project is available at https://www.figma.com/design/MqF1PdgXnrX0mwU5luYlBn/Build-Spiritual-Consultancy-Website.
+  This is a code bundle for VyanaSoul. The original project is available at https://www.figma.com/design/MqF1PdgXnrX0mwU5luYlBn/VyanaSoul.
 
   ## Running the code
 

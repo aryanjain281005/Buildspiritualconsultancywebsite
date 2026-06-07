@@ -8,8 +8,8 @@ export interface FAQ {
 export const faqs: FAQ[] = [
   {
     id: '1',
-    question: 'What is Akaashic Reading?',
-    answer: 'Akaashic Reading (also known as Akashic Reading) is a sacred practice of accessing the Akashic Records — a cosmic library that contains the energetic imprint of every soul\'s journey across all lifetimes. Through a specific prayer and channeling process, a trained reader can access information about your soul\'s purpose, past life experiences, karmic patterns, gifts, and the lessons your soul has chosen to learn in this lifetime.',
+    question: 'What is Akashic Reading?',
+    answer: 'Akashic Reading (also known as Akashic Reading) is a sacred practice of accessing the Akashic Records — a cosmic library that contains the energetic imprint of every soul\'s journey across all lifetimes. Through a specific prayer and channeling process, a trained reader can access information about your soul\'s purpose, past life experiences, karmic patterns, gifts, and the lessons your soul has chosen to learn in this lifetime.',
     category: 'General',
   },
   {
@@ -21,7 +21,7 @@ export const faqs: FAQ[] = [
   {
     id: '3',
     question: 'Who can take the courses?',
-    answer: 'Our courses are open to anyone who feels called to learn Akaashic reading — no prior experience is necessary for the beginner courses. We welcome spiritual seekers, healers, coaches, therapists, and curious individuals from all walks of life. For Intermediate and Advanced courses, we recommend completing the Foundation Course or having at least 6 months of experience working with the Akashic Records.',
+    answer: 'Our courses are open to anyone who feels called to learn Akashic reading — no prior experience is necessary for the beginner courses. We welcome spiritual seekers, healers, coaches, therapists, and curious individuals from all walks of life. For Intermediate and Advanced courses, we recommend completing the Foundation Course or having at least 6 months of experience working with the Akashic Records.',
     category: 'Courses',
   },
   {
@@ -33,7 +33,7 @@ export const faqs: FAQ[] = [
   {
     id: '5',
     question: 'Are readings done online or offline?',
-    answer: 'We primarily offer online readings and sessions via video call, making it accessible to clients worldwide. For clients based in our local area, in-person sessions can be arranged upon special request. Both formats are equally effective, as Akaashic energy transcends physical space and time. Online sessions allow you to be in the comfort of your own home, which often enhances the depth of the experience.',
+    answer: 'We primarily offer online readings and sessions via video call, making it accessible to clients worldwide. For clients based in our local area, in-person sessions can be arranged upon special request. Both formats are equally effective, as Akashic energy transcends physical space and time. Online sessions allow you to be in the comfort of your own home, which often enhances the depth of the experience.',
     category: 'Sessions',
   },
   {
@@ -51,7 +51,7 @@ export const faqs: FAQ[] = [
   {
     id: '8',
     question: 'How accurate are the readings?',
-    answer: 'Akaashic readings provide spiritual guidance and insights — they are not fortune-telling. The accuracy depends on the clarity of your questions, your openness to receive, and the reader\'s attunement. Many clients report 80–95% resonance with what is shared. We always encourage you to take what resonates and leave what doesn\'t. The Akashic Records offer wisdom for your highest good, not necessarily what you wish to hear.',
+    answer: 'Akashic readings provide spiritual guidance and insights — they are not fortune-telling. The accuracy depends on the clarity of your questions, your openness to receive, and the reader\'s attunement. Many clients report 80–95% resonance with what is shared. We always encourage you to take what resonates and leave what doesn\'t. The Akashic Records offer wisdom for your highest good, not necessarily what you wish to hear.',
     category: 'General',
   },
   {

@@ -41,7 +41,7 @@ export default function About() {
                   <Sparkles className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <div className="text-[#1E1048] dark:text-[#EDE9FF] font-semibold text-sm">{t.about.certifiedTitle}</div>
+                  <div className="font-bold text-sm" style={{ color: '#E53E3E' }}>{t.about.certifiedTitle}</div>
                   <div className="text-[#6B7280] dark:text-[#9CA3AF] text-xs">{t.about.certifiedSubtitle}</div>
                 </div>
               </div>
@@ -76,14 +76,18 @@ export default function About() {
           <div className="grid md:grid-cols-3 gap-8 items-center">
             <div className="text-center md:text-left">
               <div className="w-32 h-32 rounded-full overflow-hidden mx-auto md:mx-0 mb-4 border-4 border-[#7C3AED]/30">
-                <ImageWithFallback src={rekhaBalaImg} alt="Rekha Bala - Certified Akaashik Reader" className="w-full h-full object-cover" />
+                <ImageWithFallback src={rekhaBalaImg} alt="Rekha Bala - Certified Akashic Reader" className="w-full h-full object-cover" />
               </div>
-              <div className="text-[#1E1048] dark:text-[#EDE9FF] font-semibold text-lg">{t.about.certifiedTitle}</div>
+              <div className="font-bold text-lg" style={{ color: '#E53E3E' }}>{t.about.certifiedTitle}</div>
               <div className="text-[#7C3AED] dark:text-[#A78BFA] text-sm">{t.about.certifiedSubtitle}</div>
             </div>
             <div className="md:col-span-2">
               <h3 className="text-2xl md:text-3xl text-[#1E1048] dark:text-[#EDE9FF] mb-4">{t.about.founderQuote}</h3>
-              <p className="text-[#4B5563] dark:text-[#9CA3AF] leading-relaxed">{t.about.founderDesc}</p>
+              <p className="text-[#4B5563] dark:text-[#9CA3AF] leading-relaxed">
+                {t.about.founderDesc.split('Rekha Bala').map((part, i, arr) => (
+                  <span key={i}>{part}{i < arr.length - 1 && <span style={{ color: '#E53E3E' }} className="font-bold">Rekha Bala</span>}</span>
+                ))}
+              </p>
               <div className="mt-4 space-y-3 text-[#4B5563] dark:text-[#9CA3AF] leading-relaxed text-sm">
                 <p>{t.about.founderExtra1}</p>
                 <p>{t.about.founderExtra2}</p>

@@ -1,6 +1,5 @@
 import Hero from '../components/sections/Hero';
 import About from '../components/sections/About';
-import Courses from '../components/sections/Courses';
 import Consultancy from '../components/sections/Consultancy';
 import Gallery from '../components/sections/Gallery';
 import Testimonials from '../components/sections/Testimonials';
@@ -9,6 +8,7 @@ import Contact from '../components/sections/Contact';
 import { motion } from 'motion/react';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { useNavigate } from 'react-router';
 
 function ServicesHighlight() {
   const { t } = useLanguage();
@@ -41,6 +41,7 @@ function ServicesHighlight() {
 
 function CallToAction() {
   const { t } = useLanguage();
+  const navigate = useNavigate();
 
   const scrollToConsultancy = () => {
     const el = document.getElementById('consultancy');
@@ -69,7 +70,7 @@ function CallToAction() {
               <ArrowRight className="w-5 h-5" />
             </motion.button>
             <motion.button whileHover={{ scale: 1.05, background: 'rgba(255,255,255,0.15)' }} whileTap={{ scale: 0.97 }}
-              onClick={() => document.getElementById('courses')?.scrollIntoView({ behavior: 'smooth' })}
+              onClick={() => navigate('/courses')}
               className="px-8 py-4 rounded-full text-white font-medium border border-white/30 flex items-center gap-2 justify-center transition-all"
               style={{ background: 'rgba(255,255,255,0.08)' }}>
               {t.home.ctaBtn2}
@@ -87,7 +88,6 @@ export default function Home() {
       <Hero />
       <ServicesHighlight />
       <About />
-      <Courses />
       <CallToAction />
       <Consultancy />
       <Gallery />

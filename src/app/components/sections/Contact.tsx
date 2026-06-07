@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import { useForm } from 'react-hook-form';
-import { Phone, Mail, MapPin, Instagram, MessageCircle, Send, CheckCircle, Clock, Globe, Facebook } from 'lucide-react';
+import { Phone, Mail, MapPin, Instagram, MessageCircle, Send, CheckCircle, Clock, Globe, Facebook, Youtube } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
 interface ContactFormData {
@@ -11,10 +11,10 @@ interface ContactFormData {
   message: string;
 }
 
-const contactIcons = [Phone, Mail, Instagram, Facebook, MapPin];
-const contactColors = ['from-green-500 to-emerald-600', 'from-blue-500 to-indigo-600', 'from-pink-500 to-purple-600', 'from-blue-600 to-blue-800', 'from-amber-500 to-orange-500'];
-const contactHrefs = ['tel:+919987487242', 'mailto:vyanasoul369@vyanasoul.com', 'https://www.instagram.com/vyana_soul369/', 'https://www.facebook.com/people/Vyana-Soul/61586396214113/', '#'];
-const contactValues = ['+91 99874 87242', 'vyanasoul369@vyanasoul.com', '@vyana_soul369', 'Vyana Soul', 'Sauhard, C 903, Fressia Ranibello,\nMalad East, Mumbai — 400097'];
+const contactIcons = [Phone, Mail, Mail, Instagram, Facebook, Youtube, MapPin];
+const contactColors = ['from-green-500 to-emerald-600', 'from-blue-500 to-indigo-600', 'from-red-500 to-orange-500', 'from-pink-500 to-purple-600', 'from-blue-600 to-blue-800', 'from-red-500 to-red-700', 'from-amber-500 to-orange-500'];
+const contactHrefs = ['tel:+919987487242', 'mailto:vyanasoul369@vyanasoul.com', 'mailto:vyanasoul369@gmail.com', 'https://www.instagram.com/vyana_soul369/', 'https://www.facebook.com/people/Vyana-Soul/61586396214113/', 'https://www.youtube.com/@VYANASOUL369', '#'];
+const contactValues = ['+91 99874 87242', 'vyanasoul369@vyanasoul.com', 'vyanasoul369@gmail.com', '@vyana_soul369', 'Vyana Soul', '@VYANASOUL369', 'Sauhard, C 903, Fressia Ranibello,\nMalad East, Mumbai — 400097'];
 
 export default function Contact() {
   const { t } = useLanguage();

@@ -3,21 +3,27 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, ZoomIn, Camera } from 'lucide-react';
 import Masonry, { ResponsiveMasonry } from 'react-responsive-masonry';
 import { useLanguage } from '../../context/LanguageContext';
+import practiceImg from '../../../imports/image-4.png';
+import podcastImg from '../../../imports/image-5.png';
+import podcast2Img from '../../../imports/image-7.png';
+import healingImg from '../../../imports/image-8.png';
+import healing2Img from '../../../imports/image-2.png';
+import practice2Img from '../../../imports/image-9.png';
+import spiritualImg from '../../../imports/image-11.png';
+import practice3Img from '../../../imports/image-17.png';
 
 const galleryItems = [
-  { id: 1, src: 'https://images.unsplash.com/photo-1764272620010-64cb1f370d1b?w=800&q=80', title: 'Meditation & Grounding', category: 'Practice' },
-  { id: 2, src: 'https://images.unsplash.com/photo-1768569446272-1e62ab6cb976?w=800&q=80', title: 'Crystal Healing Session', category: 'Healing' },
-  { id: 3, src: 'https://images.unsplash.com/photo-1643682661119-28da0685be2c?w=800&q=80', title: 'Group Meditation Workshop', category: 'Workshop' },
-  { id: 4, src: 'https://images.unsplash.com/photo-1607773709367-06b7a91f7e4a?w=800&q=80', title: 'Sacred Card Reading', category: 'Reading' },
-  { id: 5, src: 'https://images.unsplash.com/photo-1763994684327-e6e64ac62951?w=800&q=80', title: 'Ceremonial Candle Work', category: 'Ceremony' },
-  { id: 6, src: 'https://images.unsplash.com/photo-1767610679392-5bcb618dbc29?w=800&q=80', title: 'Chakra Alignment', category: 'Healing' },
-  { id: 7, src: 'https://images.unsplash.com/photo-1769406525627-badf92979131?w=800&q=80', title: 'Cosmic Connection', category: 'Spiritual' },
-  { id: 8, src: 'https://images.unsplash.com/photo-1764192114257-ae9ecf97eb6f?w=800&q=80', title: 'Nature Mindfulness', category: 'Practice' },
-  { id: 9, src: 'https://images.unsplash.com/photo-1612066473428-fb6833a0d855?w=800&q=80', title: 'Light & Energy Work', category: 'Healing' },
-  { id: 10, src: 'https://images.unsplash.com/photo-1644698429502-d1ca6e1d2961?w=800&q=80', title: 'Online Learning Session', category: 'Courses' },
+  { id: 1, src: practiceImg, title: 'Meditation in Nature', category: 'Practice' },
+  { id: 2, src: podcastImg, title: 'Podcast Session', category: 'Podcast' },
+  { id: 3, src: podcast2Img, title: 'Podcast Session', category: 'Podcast' },
+  { id: 4, src: healingImg, title: 'Healing Session', category: 'Healing' },
+  { id: 5, src: healing2Img, title: 'Reading Session', category: 'Reading' },
+  { id: 6, src: practice2Img, title: 'Spiritual Practice', category: 'Practice' },
+  { id: 7, src: spiritualImg, title: 'Spiritual Journey', category: 'Spiritual' },
+  { id: 8, src: practice3Img, title: 'Spiritual Practice', category: 'Practice' },
 ];
 
-const allCategories = ['All', 'Practice', 'Healing', 'Workshop', 'Reading', 'Ceremony', 'Spiritual', 'Courses'];
+const allCategories = ['All', 'Practice', 'Healing', 'Reading', 'Spiritual', 'Podcast'];
 
 export default function Gallery() {
   const { t } = useLanguage();

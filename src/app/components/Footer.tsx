@@ -16,7 +16,7 @@ const quickLinks = [
 ];
 
 const coursesList = [
-  'Akaashic Foundation Course',
+  'Akashic Foundation Course',
   'Intermediate Reading Mastery',
   'Advanced Soul Mapping',
   'Healing & Energy Clearance',

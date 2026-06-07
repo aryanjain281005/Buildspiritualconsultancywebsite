@@ -3,6 +3,7 @@ import { Layout } from './components/Layout';
 import Home from './pages/Home';
 import Blog from './pages/Blog';
 import Dashboard from './pages/Dashboard';
+import CoursesPage from './pages/Courses';
 
 function NotFound() {
   return (
@@ -35,6 +36,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, Component: Home },
       { path: 'blog', Component: Blog },
+      { path: 'courses', Component: CoursesPage },
       { path: 'dashboard', Component: Dashboard },
       { path: '*', Component: NotFound },
     ],

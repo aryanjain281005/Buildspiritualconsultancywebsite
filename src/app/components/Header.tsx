@@ -7,7 +7,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import logoImg from '../../imports/image-6.png';
 
-const navIds = ['home', 'about', 'courses', 'consultancy', 'gallery', 'testimonials', 'faq', 'contact'];
+const navIds = ['home', 'about', 'consultancy', 'gallery', 'testimonials', 'faq', 'contact'];
 
 export default function Header() {
   const { theme, toggleTheme, isDark } = useTheme();
@@ -23,7 +23,6 @@ export default function Header() {
   const navItems = [
     { label: t.nav.home, id: 'home' },
     { label: t.nav.about, id: 'about' },
-    { label: t.nav.courses, id: 'courses' },
     { label: t.nav.consultancy, id: 'consultancy' },
     { label: t.nav.gallery, id: 'gallery' },
     { label: t.nav.reviews, id: 'testimonials' },
@@ -107,6 +106,10 @@ export default function Header() {
               <Link to="/blog" className="px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:text-[#7C3AED]"
                 style={{ color: location.pathname === '/blog' ? '#7C3AED' : scrolled ? isDark ? 'rgba(237,233,255,0.8)' : 'rgba(30,16,72,0.7)' : 'rgba(255,255,255,0.85)' }}>
                 {t.nav.blog}
+              </Link>
+              <Link to="/courses" className="px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:text-[#7C3AED]"
+                style={{ color: location.pathname === '/courses' ? '#7C3AED' : scrolled ? isDark ? 'rgba(237,233,255,0.8)' : 'rgba(30,16,72,0.7)' : 'rgba(255,255,255,0.85)' }}>
+                {t.nav.courses}
               </Link>
             </nav>
 
@@ -212,6 +215,10 @@ export default function Header() {
                 <Link to="/blog" onClick={() => setMobileOpen(false)} className="text-left px-4 py-3 rounded-xl text-sm font-medium transition-all"
                   style={{ color: isDark ? 'rgba(237,233,255,0.8)' : 'rgba(30,16,72,0.8)' }}>
                   {t.nav.blog}
+                </Link>
+                <Link to="/courses" onClick={() => setMobileOpen(false)} className="text-left px-4 py-3 rounded-xl text-sm font-medium transition-all"
+                  style={{ color: isDark ? 'rgba(237,233,255,0.8)' : 'rgba(30,16,72,0.8)' }}>
+                  {t.nav.courses}
                 </Link>
               </nav>
 
