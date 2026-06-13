@@ -109,8 +109,8 @@ export default function LoginModal() {
     }
   };
 
-  const handleLogout = async () => {
-    await logout();
+  const handleLogout = () => {
+    logout();
     closeLoginModal();
     navigate('/');
   };
