@@ -91,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       name: profile?.name ?? authUser.user_metadata?.name ?? authUser.user_metadata?.full_name ?? authUser.email?.split('@')[0] ?? 'User',
       email: authUser.email ?? '',
       avatar: profile?.avatar_url || authUser.user_metadata?.avatar_url,
-      role: profile?.role === 'admin' ? 'admin' : 'user',
+      role: (profile?.role === 'admin' || isAdminEmail(authUser.email ?? '')) ? 'admin' : 'user',
       phone: profile?.phone,
     };
   }, []);
@@ -178,7 +178,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const accessToken = session?.access_token ?? null;
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = user?.role === 'admin' || (user?.email ? isAdminEmail(user.email) : false);
 
   return (
     <AuthContext.Provider value={{

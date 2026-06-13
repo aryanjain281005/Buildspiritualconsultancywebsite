@@ -242,7 +242,7 @@ BEGIN
     NEW.id,
     COALESCE(NEW.raw_user_meta_data->>'name', NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
     NEW.email,
-    CASE WHEN NEW.email = 'aryanjain281005@gmail.com' THEN 'admin' ELSE 'user' END,
+    CASE WHEN NEW.email IN ('aryanjain281005@gmail.com', 'vyanasoul369@vyanasoul.com', 'vyanasoul369@gmail.com') THEN 'admin' ELSE 'user' END,
     COALESCE(NEW.raw_user_meta_data->>'avatar_url', '')
   );
   RETURN NEW;
