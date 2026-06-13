@@ -26,10 +26,6 @@ export default function Consultancy() {
   const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm<FormData>();
 
   const onSubmit = async (data: FormData) => {
-    if (!user) {
-      openLoginModal();
-      return;
-    }
 
     try {
 
@@ -233,35 +229,24 @@ export default function Consultancy() {
                       placeholder={t.consultancy.placeholderMessage} />
                   </div>
 
-                  {user ? (
-                    <motion.button type="submit" disabled={isSubmitting}
-                      whileHover={!isSubmitting ? { scale: 1.02, boxShadow: '0 0 30px rgba(124,58,237,0.5)' } : {}}
-                      whileTap={!isSubmitting ? { scale: 0.98 } : {}}
-                      className="w-full py-4 rounded-xl text-white font-medium flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-70"
-                      style={{ background: isSubmitting ? 'rgba(124,58,237,0.5)' : 'linear-gradient(135deg, #7C3AED, #6D28D9)' }}>
-                      {isSubmitting ? (
-                        <>
-                          <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                            className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full" />
-                          {t.consultancy.submitting}
-                        </>
-                      ) : (
-                        <>
-                          <Send className="w-5 h-5" />
-                          {t.consultancy.submitBtn}
-                        </>
-                      )}
-                    </motion.button>
-                  ) : (
-                    <motion.button type="button" onClick={openLoginModal}
-                      whileHover={{ scale: 1.02, boxShadow: '0 0 30px rgba(124,58,237,0.5)' }}
-                      whileTap={{ scale: 0.98 }}
-                      className="w-full py-4 rounded-xl text-white font-medium flex items-center justify-center gap-2 transition-all duration-300"
-                      style={{ background: 'linear-gradient(135deg, #7C3AED, #6D28D9)' }}>
-                      <LogIn className="w-5 h-5" />
-                      Login to Book Session
-                    </motion.button>
-                  )}
+                  <motion.button type="submit" disabled={isSubmitting}
+                    whileHover={!isSubmitting ? { scale: 1.02, boxShadow: '0 0 30px rgba(124,58,237,0.5)' } : {}}
+                    whileTap={!isSubmitting ? { scale: 0.98 } : {}}
+                    className="w-full py-4 rounded-xl text-white font-medium flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-70"
+                    style={{ background: isSubmitting ? 'rgba(124,58,237,0.5)' : 'linear-gradient(135deg, #7C3AED, #6D28D9)' }}>
+                    {isSubmitting ? (
+                      <>
+                        <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                          className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full" />
+                        {t.consultancy.submitting}
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-5 h-5" />
+                        {t.consultancy.submitBtn}
+                      </>
+                    )}
+                  </motion.button>
 
                   <p className="text-purple-300/50 text-xs text-center">{t.consultancy.confidentialNote}</p>
                 </form>

@@ -241,7 +241,10 @@ export default function Admin() {
                         {consultancyRequests.slice(0, 5).map(r => (
                           <div key={r.id} className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div>
-                              <p className="font-medium text-sm" style={{ color: textMain }}>{r.full_name}</p>
+                              <div className="flex items-center gap-2">
+                                <p className="font-medium text-sm" style={{ color: textMain }}>{r.full_name}</p>
+                                {!r.user_id && <span className="px-1.5 py-0.5 rounded text-[9px] bg-red-500/10 text-red-500 font-bold uppercase">Guest</span>}
+                              </div>
                               <p className="text-xs mt-1" style={{ color: textMuted }}>{r.service} • {new Date(r.created_at).toLocaleDateString()}</p>
                             </div>
                             <StatusBadge status={r.status} />
@@ -260,7 +263,10 @@ export default function Admin() {
                       <div key={r.id} className="p-4 sm:p-6 rounded-xl shadow-sm" style={{ background: cardBg, border: `1px solid ${borderColor}` }}>
                         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
                           <div>
-                            <h3 className="font-bold text-lg" style={{ color: textMain }}>{r.full_name}</h3>
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-bold text-lg" style={{ color: textMain }}>{r.full_name}</h3>
+                              {!r.user_id && <span className="px-2 py-0.5 rounded text-[10px] bg-red-500/10 text-red-500 font-bold uppercase tracking-wider">Unregistered User</span>}
+                            </div>
                             <div className="flex items-center gap-4 mt-2 text-sm flex-wrap" style={{ color: textMuted }}>
                               <a href={`mailto:${r.email}`} className="flex items-center gap-1.5 hover:text-blue-500 transition-colors">
                                 <Mail className="w-4 h-4" /> {r.email}
