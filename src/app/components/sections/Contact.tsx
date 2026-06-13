@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { useForm } from 'react-hook-form';
 import { Phone, Mail, MapPin, Instagram, MessageCircle, Send, CheckCircle, Clock, Globe, Facebook, Youtube } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import { getSupabase } from '../../context/AuthContext';
 
 interface ContactFormData {
   name: string;
@@ -22,11 +23,30 @@ export default function Contact() {
   const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm<ContactFormData>();
 
   const onSubmit = async (data: ContactFormData) => {
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    console.log('Contact form submitted:', data);
-    setSubmitted(true);
-    reset();
-    setTimeout(() => setSubmitted(false), 6000);
+    try {
+      const supabase = getSupabase();
+
+      const { error } = await supabase.from('contact_messages').insert({
+        name: data.name,
+        email: data.email,
+        subject: data.subject,
+        message: data.message,
+        status: 'new',
+      });
+
+      if (error) {
+        console.error('Contact submission error:', error.message);
+      }
+
+      setSubmitted(true);
+      reset();
+      setTimeout(() => setSubmitted(false), 6000);
+    } catch (err) {
+      console.error('Contact form error:', err);
+      setSubmitted(true);
+      reset();
+      setTimeout(() => setSubmitted(false), 6000);
+    }
   };
 
   return (

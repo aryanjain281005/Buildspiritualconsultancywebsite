@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { createClient, SupabaseClient, User, Session } from '@supabase/supabase-js';
-import { projectId, publicAnonKey } from '/utils/supabase/info';
+import { projectId, publicAnonKey, ADMIN_EMAILS } from '/utils/supabase/info';
 
 // ── Supabase singleton ─────────────────────────────────────
 let _supabase: SupabaseClient | null = null;
@@ -14,15 +14,24 @@ export function getSupabase(): SupabaseClient {
   return _supabase;
 }
 
-const SERVER_URL = `https://${projectId}.supabase.co/functions/v1/make-server-d03e957c`;
-
 // ── Types ──────────────────────────────────────────────────
 export interface VyanaUser {
   id: string;
   name: string;
   email: string;
   avatar?: string;
-  role?: string;
+  role: 'admin' | 'user';
+  phone?: string;
+}
+
+export interface Profile {
+  id: string;
+  name: string;
+  email: string;
+  role: 'admin' | 'user';
+  phone: string;
+  avatar_url: string;
+  created_at: string;
 }
 
 interface AuthContextType {
@@ -30,6 +39,7 @@ interface AuthContextType {
   session: Session | null;
   accessToken: string | null;
   loading: boolean;
+  isAdmin: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (name: string, email: string, password: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
@@ -41,9 +51,24 @@ interface AuthContextType {
   dashboardOpen: boolean;
   openDashboard: () => void;
   closeDashboard: () => void;
+  supabase: SupabaseClient;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
+
+// ── Fetch profile from profiles table ─────────────────────
+async function fetchProfile(supabase: SupabaseClient, userId: string): Promise<Profile | null> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', userId)
+    .maybeSingle();
+  if (error) {
+    console.error('Error fetching profile:', error.message);
+    return null;
+  }
+  return data;
+}
 
 // ── AuthProvider ───────────────────────────────────────────
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -54,29 +79,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [dashboardOpen, setDashboardOpen] = useState(false);
 
-  const mapUser = useCallback((u: User): VyanaUser => ({
-    id: u.id,
-    name: u.user_metadata?.name ?? u.user_metadata?.full_name ?? u.email?.split('@')[0] ?? 'User',
-    email: u.email ?? '',
-    avatar: u.user_metadata?.avatar_url,
-    role: u.user_metadata?.role ?? 'student',
-  }), []);
+  const mapUserWithProfile = useCallback(async (authUser: User, profile?: Profile | null): Promise<VyanaUser> => {
+    // If no profile passed, try to fetch it
+    if (!profile) {
+      const supabase = getSupabase();
+      profile = await fetchProfile(supabase, authUser.id);
+    }
+
+    return {
+      id: authUser.id,
+      name: profile?.name ?? authUser.user_metadata?.name ?? authUser.user_metadata?.full_name ?? authUser.email?.split('@')[0] ?? 'User',
+      email: authUser.email ?? '',
+      avatar: profile?.avatar_url || authUser.user_metadata?.avatar_url,
+      role: profile?.role === 'admin' ? 'admin' : 'user',
+      phone: profile?.phone,
+    };
+  }, []);
 
   // Restore session on mount
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
-      setUser(session?.user ? mapUser(session.user) : null);
+      if (session?.user) {
+        const mappedUser = await mapUserWithProfile(session.user);
+        setUser(mappedUser);
+      } else {
+        setUser(null);
+      }
       setLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
-      setUser(session?.user ? mapUser(session.user) : null);
+      if (session?.user) {
+        const mappedUser = await mapUserWithProfile(session.user);
+        setUser(mappedUser);
+      } else {
+        setUser(null);
+      }
     });
 
     return () => subscription.unsubscribe();
-  }, [supabase, mapUser]);
+  }, [supabase, mapUserWithProfile]);
 
   const login = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -84,40 +128,62 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signup = async (name: string, email: string, password: string) => {
-    // Use the server route so we can auto-confirm the email
-    const res = await fetch(`${SERVER_URL}/auth/signup`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${publicAnonKey}` },
-      body: JSON.stringify({ name, email, password }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error ?? 'Signup failed.');
+    // Check if this is an admin email — admins should NOT signup, only login
+    if (ADMIN_EMAILS.some(e => e.toLowerCase() === email.toLowerCase())) {
+      throw new Error('This email is reserved for admin. Please use the Login tab.');
+    }
 
-    // Sign in right after
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw new Error(error.message);
+    // Check if account already exists by trying to sign up
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { name },
+      },
+    });
+
+    if (error) {
+      if (error.message.toLowerCase().includes('already registered') || error.message.toLowerCase().includes('already exists')) {
+        throw new Error('An account with this email already exists. Please switch to the Login tab.');
+      }
+      throw new Error(error.message);
+    }
+
+    // If user was returned but identities is empty, the user already exists
+    if (data.user && data.user.identities && data.user.identities.length === 0) {
+      throw new Error('An account with this email already exists. Please switch to the Login tab.');
+    }
+
+    // Auto sign-in after successful signup
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+    if (signInError) throw new Error(signInError.message);
   };
 
   const loginWithGoogle = async () => {
-    // Do not forget to complete setup at https://supabase.com/docs/guides/auth/social-login/auth-google
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/dashboard` },
+      options: { redirectTo: `${window.location.origin}/` },
     });
     if (error) throw new Error(error.message);
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    setSession(null);
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error('Logout error:', err);
+    } finally {
+      setUser(null);
+      setSession(null);
+    }
   };
 
   const accessToken = session?.access_token ?? null;
+  const isAdmin = user?.role === 'admin';
 
   return (
     <AuthContext.Provider value={{
-      user, session, accessToken, loading,
+      user, session, accessToken, loading, isAdmin,
       login, signup, loginWithGoogle, logout,
       loginModalOpen,
       openLoginModal: () => setLoginModalOpen(true),
@@ -125,6 +191,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       dashboardOpen,
       openDashboard: () => setDashboardOpen(true),
       closeDashboard: () => setDashboardOpen(false),
+      supabase,
     }}>
       {children}
     </AuthContext.Provider>
@@ -137,18 +204,7 @@ export function useAuth() {
   return ctx;
 }
 
-// ── API helper ─────────────────────────────────────────────
-export async function apiFetch(path: string, accessToken: string, options: RequestInit = {}) {
-  const url = `${SERVER_URL}${path}`;
-  const res = await fetch(url, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
-      ...(options.headers ?? {}),
-    },
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error ?? `Request failed: ${res.status}`);
-  return data;
+// ── Check if email is admin ──────────────────────────────
+export function isAdminEmail(email: string): boolean {
+  return ADMIN_EMAILS.some(e => e.toLowerCase() === email.toLowerCase());
 }

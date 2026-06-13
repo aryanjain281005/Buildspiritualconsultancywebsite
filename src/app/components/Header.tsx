@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link, useNavigate, useLocation } from 'react-router';
-import { Sun, Moon, Menu, X, ArrowRight, LogIn, User } from 'lucide-react';
+import { Sun, Moon, Menu, X, ArrowRight, LogIn, User, Shield } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
-import { useAuth } from '../context/AuthContext';
+import { useAuth, isAdminEmail } from '../context/AuthContext';
 import logoImg from '../../imports/image-6.png';
 
 const navIds = ['home', 'about', 'consultancy', 'gallery', 'testimonials', 'faq', 'contact'];
@@ -12,7 +12,7 @@ const navIds = ['home', 'about', 'consultancy', 'gallery', 'testimonials', 'faq'
 export default function Header() {
   const { theme, toggleTheme, isDark } = useTheme();
   const { lang, setLang, t } = useLanguage();
-  const { user, openLoginModal } = useAuth();
+  const { user, isAdmin, openLoginModal } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -149,6 +149,15 @@ export default function Header() {
                 </AnimatePresence>
               </motion.button>
 
+              {/* Admin Direct Access */}
+              {isAdmin && (
+                <Link to="/admin" className="hidden sm:flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-sm font-medium transition-all hover:scale-105"
+                  style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)' }}>
+                  <Shield className="w-3.5 h-3.5" />
+                  Admin
+                </Link>
+              )}
+
               {/* Book Now CTA */}
               <motion.button whileHover={{ scale: 1.05, boxShadow: '0 4px 20px rgba(124,58,237,0.4)' }} whileTap={{ scale: 0.97 }} onClick={() => handleNavClick('consultancy')}
                 className="hidden sm:flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-sm font-medium"
@@ -161,7 +170,7 @@ export default function Header() {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.97 }}
-                onClick={() => user ? navigate('/dashboard') : openLoginModal()}
+                onClick={() => openLoginModal()}
                 className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all"
                 style={{
                   background: user ? 'linear-gradient(135deg, #7C3AED, #6D28D9)' : isDark ? 'rgba(124,58,237,0.12)' : 'rgba(124,58,237,0.08)',
