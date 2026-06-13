@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { createClient, SupabaseClient, User, Session } from '@supabase/supabase-js';
-import { projectId, publicAnonKey, ADMIN_EMAILS } from '/utils/supabase/info';
+import { projectId, publicAnonKey, ADMIN_EMAILS } from '../../../utils/supabase/info';
 
 // ── Supabase singleton ─────────────────────────────────────
 let _supabase: SupabaseClient | null = null;
