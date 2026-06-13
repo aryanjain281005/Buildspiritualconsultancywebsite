@@ -208,7 +208,7 @@ export default function Admin() {
                         { title: 'New Contact Messages', val: contactMessages.filter(m => m.status === 'new').length, color: '#2563EB' },
                         { title: 'Total Registered Users', val: profiles.length, color: '#7C3AED' },
                       ].map((s, i) => (
-                        <div key={i} className="p-6 rounded-xl shadow-sm" style={{ background: cardBg, border: `1px solid ${borderColor}`, borderLeft: `4px solid ${s.color}` }}>
+                        <div key={i} className="p-4 sm:p-6 rounded-xl shadow-sm" style={{ background: cardBg, border: `1px solid ${borderColor}`, borderLeft: `4px solid ${s.color}` }}>
                           <p className="text-sm font-medium mb-2" style={{ color: textMuted }}>{s.title}</p>
                           <p className="text-3xl font-bold" style={{ color: textMain }}>{s.val}</p>
                         </div>
@@ -218,7 +218,7 @@ export default function Admin() {
                     <div className="flex items-center justify-between mt-8 mb-4">
                       <h3 className="font-semibold text-lg" style={{ color: textMain }}>Quick Actions</h3>
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                       <button onClick={() => exportToCSV(consultancyRequests, 'consultancy_requests')} className="flex flex-col items-center justify-center p-4 rounded-xl shadow-sm transition-all hover:scale-[1.02]" style={{ background: cardBg, border: `1px solid ${borderColor}` }}>
                         <Download className="w-5 h-5 mb-2" style={{ color: accentColor }} />
                         <span className="text-xs font-medium" style={{ color: textMain }}>Export Requests (CSV)</span>
@@ -239,7 +239,7 @@ export default function Admin() {
                       </div>
                       <div className="divide-y" style={{ borderColor }}>
                         {consultancyRequests.slice(0, 5).map(r => (
-                          <div key={r.id} className="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                          <div key={r.id} className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div>
                               <p className="font-medium text-sm" style={{ color: textMain }}>{r.full_name}</p>
                               <p className="text-xs mt-1" style={{ color: textMuted }}>{r.service} • {new Date(r.created_at).toLocaleDateString()}</p>
@@ -257,7 +257,7 @@ export default function Admin() {
                 {activeNav === 'consultancy' && (
                   <div className="space-y-4">
                     {consultancyRequests.map(r => (
-                      <div key={r.id} className="p-6 rounded-xl shadow-sm" style={{ background: cardBg, border: `1px solid ${borderColor}` }}>
+                      <div key={r.id} className="p-4 sm:p-6 rounded-xl shadow-sm" style={{ background: cardBg, border: `1px solid ${borderColor}` }}>
                         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
                           <div>
                             <h3 className="font-bold text-lg" style={{ color: textMain }}>{r.full_name}</h3>
@@ -309,7 +309,7 @@ export default function Admin() {
                 {activeNav === 'contact' && (
                   <div className="space-y-4">
                     {contactMessages.map(m => (
-                      <div key={m.id} className="p-6 rounded-xl shadow-sm" style={{ background: cardBg, border: `1px solid ${borderColor}` }}>
+                      <div key={m.id} className="p-4 sm:p-6 rounded-xl shadow-sm" style={{ background: cardBg, border: `1px solid ${borderColor}` }}>
                         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
                           <div>
                             <h3 className="font-bold text-lg" style={{ color: textMain }}>{m.subject}</h3>

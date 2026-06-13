@@ -155,7 +155,7 @@ export default function LoginModal() {
           >
             <div
               className="relative w-full max-w-md rounded-2xl shadow-2xl overflow-hidden"
-              style={{ background: bg, border: `1px solid ${cardBorder}`, pointerEvents: 'auto', maxHeight: '90vh', overflowY: 'auto' }}
+              style={{ background: bg, border: `1px solid ${cardBorder}`, pointerEvents: 'auto', maxHeight: '100dvh', overflowY: 'auto' }}
               onClick={e => e.stopPropagation()}
             >
               {/* Glow */}
@@ -169,7 +169,7 @@ export default function LoginModal() {
                 <X className="w-4 h-4" />
               </button>
 
-              <div className="p-7 pt-8">
+              <div className="p-5 sm:p-7 pt-6 sm:pt-8 pb-8 sm:pb-7">
                 {user ? (
                   /* ── Logged-in mini-dashboard ── */
                   <div>

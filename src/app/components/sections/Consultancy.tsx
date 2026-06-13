@@ -154,7 +154,7 @@ export default function Consultancy() {
 
           {/* Right Form */}
           <motion.div initial={{ opacity: 0, x: 40 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.8, delay: 0.2 }} className="lg:col-span-3">
-            <div className="rounded-3xl p-8 border border-white/10" style={{ background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(20px)' }}>
+            <div className="rounded-3xl p-5 sm:p-8 border border-white/10" style={{ background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(20px)' }}>
               {submitted ? (
                 <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-16">
                   <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 0.5 }}

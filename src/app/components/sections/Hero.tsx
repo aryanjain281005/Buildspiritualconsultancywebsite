@@ -150,7 +150,7 @@ export default function Hero() {
                 style={{ background: 'radial-gradient(circle, rgba(124,58,237,0.45) 0%, rgba(109,40,217,0.2) 50%, transparent 75%)' }} />
 
               {/* Photo card */}
-              <div className="relative w-72 h-[400px] sm:w-80 sm:h-[440px] md:w-[340px] md:h-[470px] rounded-3xl overflow-hidden"
+              <div className="relative w-64 h-[350px] sm:w-80 sm:h-[440px] md:w-[340px] md:h-[470px] rounded-3xl overflow-hidden"
                 style={{
                   boxShadow: '0 0 0 1px rgba(167,139,250,0.25), 0 30px 80px rgba(6,3,18,0.6), 0 0 60px rgba(124,58,237,0.3)',
                   background: 'linear-gradient(160deg, rgba(124,58,237,0.15), rgba(6,3,18,0.4))'

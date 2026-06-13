@@ -213,7 +213,7 @@ export default function Header() {
             className="fixed top-16 left-0 right-0 z-40 lg:hidden shadow-2xl"
             style={{ background: isDark ? 'rgba(6,3,18,0.98)' : 'rgba(255,255,255,0.98)', backdropFilter: 'blur(20px)', borderBottom: `1px solid ${isDark ? 'rgba(124,58,237,0.2)' : 'rgba(124,58,237,0.1)'}` }}>
             <div className="container mx-auto px-4 py-4">
-              <nav className="grid grid-cols-2 gap-1 mb-4">
+              <nav className="flex flex-col gap-1 mb-4 max-h-[50vh] overflow-y-auto">
                 {navItems.map((item, i) => (
                   <motion.button key={item.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
                     onClick={() => handleNavClick(item.id)} className="text-left px-4 py-3 rounded-xl text-sm font-medium transition-all"
