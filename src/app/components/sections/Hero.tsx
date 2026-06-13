@@ -4,7 +4,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
 import rekhaBalaPhoto from '../../../imports/image-19.png';
 
-const HERO_BG = 'https://images.unsplash.com/photo-1773760008677-938aece4d407?w=1920&q=80';
+const HERO_BG = 'https://images.unsplash.com/photo-1773760008677-938aece4d407?auto=format&fit=crop&w=1920&q=80';
 
 const starPositions = [
   { top: '15%', left: '8%', delay: 0, dur: 2.5 },
@@ -41,26 +41,28 @@ export default function Hero() {
 
       {/* Glowing orbs */}
       <motion.div className="absolute top-24 left-16 w-80 h-80 rounded-full z-[2]"
-        style={{ background: 'radial-gradient(circle, rgba(124,58,237,0.25) 0%, transparent 70%)' }}
+        style={{ background: 'radial-gradient(circle, rgba(124,58,237,0.25) 0%, transparent 70%)', willChange: 'transform, opacity', transform: 'translateZ(0)' }}
         animate={{ scale: [1, 1.15, 1], opacity: [0.5, 0.8, 0.5] }}
         transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }} />
       <motion.div className="absolute bottom-32 right-20 w-96 h-96 rounded-full z-[2]"
-        style={{ background: 'radial-gradient(circle, rgba(236,72,153,0.2) 0%, transparent 70%)' }}
+        style={{ background: 'radial-gradient(circle, rgba(236,72,153,0.2) 0%, transparent 70%)', willChange: 'transform, opacity', transform: 'translateZ(0)' }}
         animate={{ scale: [1, 1.2, 1], opacity: [0.4, 0.7, 0.4] }}
         transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut', delay: 2 }} />
 
       {/* Star particles */}
       {starPositions.map((star, i) => (
         <motion.div key={i} className="absolute w-1 h-1 bg-white rounded-full z-[3]"
-          style={{ top: star.top, left: star.left }}
+          style={{ top: star.top, left: star.left, willChange: 'transform, opacity', transform: 'translateZ(0)' }}
           animate={{ opacity: [0.2, 1, 0.2], scale: [0.8, 1.4, 0.8] }}
           transition={{ duration: star.dur, repeat: Infinity, ease: 'easeInOut', delay: star.delay }} />
       ))}
 
       {/* Spinning rings */}
       <motion.div className="absolute top-24 right-24 w-32 h-32 rounded-full border border-purple-500/20 z-[3]"
+        style={{ willChange: 'transform', transform: 'translateZ(0)' }}
         animate={{ rotate: 360 }} transition={{ duration: 30, repeat: Infinity, ease: 'linear' }} />
       <motion.div className="absolute bottom-40 left-20 w-20 h-20 rounded-full border border-amber-500/20 z-[3]"
+        style={{ willChange: 'transform', transform: 'translateZ(0)' }}
         animate={{ rotate: -360 }} transition={{ duration: 20, repeat: Infinity, ease: 'linear' }} />
 
       {/* ── Main Content ─────────────────────────────────────── */}
@@ -72,7 +74,7 @@ export default function Hero() {
             {/* Badge */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-7 border border-purple-400/30"
-              style={{ background: 'rgba(124,58,237,0.15)', backdropFilter: 'blur(8px)' }}>
+              style={{ background: 'rgba(124,58,237,0.15)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', transform: 'translateZ(0)' }}>
               <Sparkles className="w-3.5 h-3.5 text-amber-400" />
               <span className="text-amber-300 text-xs tracking-widest uppercase font-medium">{t.hero.badge}</span>
               <Sparkles className="w-3.5 h-3.5 text-amber-400" />
@@ -108,7 +110,7 @@ export default function Hero() {
               <motion.button whileHover={{ scale: 1.05, background: 'rgba(255,255,255,0.15)' }} whileTap={{ scale: 0.97 }}
                 onClick={() => scrollToSection('consultancy')}
                 className="px-7 py-3.5 rounded-full text-white font-medium text-sm border border-white/30 flex items-center gap-2 transition-all duration-300"
-                style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(8px)' }}>
+                style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', transform: 'translateZ(0)' }}>
                 <Star className="w-4 h-4 text-amber-400" />
                 {t.hero.cta2}
               </motion.button>
@@ -120,7 +122,7 @@ export default function Hero() {
               {t.hero.stats.map((stat, i) => (
                 <motion.div key={i} whileHover={{ scale: 1.05 }}
                   className="text-center px-8 py-4 rounded-2xl border border-white/15"
-                  style={{ background: 'rgba(255,255,255,0.07)', backdropFilter: 'blur(10px)' }}>
+                  style={{ background: 'rgba(255,255,255,0.07)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', transform: 'translateZ(0)' }}>
                   <div className="text-4xl md:text-5xl text-white mb-0.5"
                     style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 700 }}>
                     {stat.value}
@@ -137,10 +139,12 @@ export default function Hero() {
             <div className="relative">
               {/* Outer orbit rings */}
               <motion.div className="absolute inset-0 -m-10 rounded-full border border-purple-400/20"
+                style={{ willChange: 'transform', transform: 'translateZ(0)' }}
                 animate={{ rotate: 360 }} transition={{ duration: 25, repeat: Infinity, ease: 'linear' }}>
                 <div className="absolute top-3 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-purple-400/60" />
               </motion.div>
               <motion.div className="absolute inset-0 -m-6 rounded-full border border-amber-400/15"
+                style={{ willChange: 'transform', transform: 'translateZ(0)' }}
                 animate={{ rotate: -360 }} transition={{ duration: 18, repeat: Infinity, ease: 'linear' }}>
                 <div className="absolute bottom-2 right-4 w-1.5 h-1.5 rounded-full bg-amber-400/70" />
               </motion.div>

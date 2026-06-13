@@ -51,9 +51,9 @@ function CallToAction() {
   return (
     <section className="py-20 relative overflow-hidden">
       <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, #4C1D95 0%, #6D28D9 50%, #5B21B6 100%)' }} />
-      <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1773760008677-938aece4d407?w=1920&q=60')", backgroundSize: 'cover', backgroundPosition: 'center', mixBlendMode: 'overlay' }} />
+      <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1773760008677-938aece4d407?auto=format&fit=crop&w=1920&q=60')", backgroundSize: 'cover', backgroundPosition: 'center', mixBlendMode: 'overlay' }} />
       <motion.div className="absolute top-10 right-20 w-64 h-64 rounded-full blur-3xl opacity-30"
-        style={{ background: 'radial-gradient(circle, rgba(245,158,11,0.4) 0%, transparent 70%)' }}
+        style={{ background: 'radial-gradient(circle, rgba(245,158,11,0.4) 0%, transparent 70%)', willChange: 'transform', transform: 'translateZ(0)' }}
         animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 6, repeat: Infinity }} />
       <div className="container mx-auto px-4 max-w-4xl relative z-10 text-center">
         <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }}>
