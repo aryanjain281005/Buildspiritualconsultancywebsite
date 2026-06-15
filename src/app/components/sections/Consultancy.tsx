@@ -1,10 +1,8 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import { useForm } from 'react-hook-form';
-import { Send, CheckCircle, Star, Zap, Shield, Clock, Phone, Mail, LogIn } from 'lucide-react';
+import { Send, CheckCircle, Star, Zap, Shield, Clock, Phone, Mail } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
-import { useAuth } from '../../context/AuthContext';
-import { sendTelegramNotification } from '../../utils/notifications';
 
 const CONSULTANCY_BG = 'https://images.unsplash.com/photo-1769406525627-badf92979131?w=1200&q=80';
 
@@ -21,44 +19,15 @@ interface FormData {
 
 export default function Consultancy() {
   const { t } = useLanguage();
-  const { user, supabase, openLoginModal } = useAuth();
   const [submitted, setSubmitted] = useState(false);
   const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm<FormData>();
 
   const onSubmit = async (data: FormData) => {
-
-    try {
-
-      const { error } = await supabase.from('consultancy_requests').insert({
-        user_id: user?.id || null,
-        full_name: data.fullName,
-        email: data.email,
-        phone: data.phone || '',
-        service: data.service,
-        preferred_time: data.preferredTime || '',
-        message: data.message || '',
-        status: 'new',
-      });
-
-      if (error) {
-        console.error('Consultancy submission error:', error.message);
-        // Still show success to user — the form data was captured
-      } else {
-        // Send Telegram notification
-        const msg = `🔔 *New Consultancy Request*\n\n*Name:* ${data.fullName}\n*Email:* ${data.email}\n*Phone:* ${data.phone || 'N/A'}\n*Service:* ${data.service}\n*Time:* ${data.preferredTime || 'Anytime'}\n\n*Message:*\n${data.message || 'No message provided'}`;
-        sendTelegramNotification(msg);
-      }
-
-      setSubmitted(true);
-      reset();
-      setTimeout(() => setSubmitted(false), 6000);
-    } catch (err) {
-      console.error('Consultancy form error:', err);
-      // Fallback — still show success UI
-      setSubmitted(true);
-      reset();
-      setTimeout(() => setSubmitted(false), 6000);
-    }
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    console.log('Booking submitted:', data);
+    setSubmitted(true);
+    reset();
+    setTimeout(() => setSubmitted(false), 6000);
   };
 
   return (
@@ -113,7 +82,7 @@ export default function Consultancy() {
             </div>
 
             {/* Services offered */}
-            <div className="p-6 rounded-2xl border border-white/10" style={{ background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', transform: 'translateZ(0)' }}>
+            <div className="p-6 rounded-2xl border border-white/10" style={{ background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(10px)' }}>
               <h4 className="text-white font-medium mb-4">{t.consultancy.ourServices}</h4>
               <div className="space-y-2">
                 {t.consultancy.servicesList.map((s) => (
@@ -150,7 +119,7 @@ export default function Consultancy() {
 
           {/* Right Form */}
           <motion.div initial={{ opacity: 0, x: 40 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.8, delay: 0.2 }} className="lg:col-span-3">
-            <div className="rounded-3xl p-5 sm:p-8 border border-white/10" style={{ background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', transform: 'translateZ(0)' }}>
+            <div className="rounded-3xl p-8 border border-white/10" style={{ background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(20px)' }}>
               {submitted ? (
                 <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-16">
                   <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 0.5 }}

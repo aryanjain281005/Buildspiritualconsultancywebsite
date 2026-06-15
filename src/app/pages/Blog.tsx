@@ -15,7 +15,7 @@ import emotionalImg from '../../imports/image-14.png';
 import purposeImg from '../../imports/image-15.png';
 import spiritualGrowthImg from '../../imports/image-16.png';
 
-const MEDITATION_IMG = 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=800&q=80';
+const MEDITATION_IMG = 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&q=80';
 
 const allCategories = ['All', ...Array.from(new Set(blogPosts.map(p => p.category)))];
 

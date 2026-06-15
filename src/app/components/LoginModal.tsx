@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Mail, Lock, User, Eye, EyeOff, LogIn, UserPlus, LogOut, LayoutDashboard, Shield } from 'lucide-react';
-import { useAuth, isAdminEmail } from '../context/AuthContext';
+import { X, Mail, Lock, User, Eye, EyeOff, LogIn, UserPlus, LogOut, LayoutDashboard } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useNavigate } from 'react-router';
 
@@ -20,7 +20,7 @@ function GoogleIcon() {
 type Tab = 'login' | 'signup';
 
 export default function LoginModal() {
-  const { user, isAdmin, login, signup, loginWithGoogle, logout, loginModalOpen, closeLoginModal } = useAuth();
+  const { user, login, signup, loginWithGoogle, logout, loginModalOpen, closeLoginModal } = useAuth();
   const { isDark } = useTheme();
   const navigate = useNavigate();
 
@@ -33,9 +33,6 @@ export default function LoginModal() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');
   const [googleLoading, setGoogleLoading] = useState(false);
-
-  // Detect admin email while typing — force to login-only mode
-  const isAdminTyping = isAdminEmail(email);
 
   // Close on Escape
   useEffect(() => {
@@ -56,14 +53,6 @@ export default function LoginModal() {
     setError(''); setSuccess(''); setName(''); setEmail(''); setPassword('');
   }, [tab]);
 
-  // If admin email is typed and we're on signup, switch to login
-  useEffect(() => {
-    if (isAdminTyping && tab === 'signup') {
-      setTab('login');
-      setError('');
-    }
-  }, [isAdminTyping, tab]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(''); setSuccess(''); setLoading(true);
@@ -71,24 +60,13 @@ export default function LoginModal() {
       if (tab === 'login') {
         await login(email, password);
         setSuccess('Welcome back! Signing you in…');
-        setTimeout(() => {
-          closeLoginModal();
-          // Redirect based on role — check if admin email
-          if (isAdminEmail(email)) {
-            navigate('/admin');
-          } else {
-            navigate('/');
-          }
-        }, 1000);
+        setTimeout(() => { closeLoginModal(); }, 1000);
       } else {
         if (!name.trim()) throw new Error('Please enter your full name.');
         if (password.length < 6) throw new Error('Password must be at least 6 characters.');
         await signup(name, email, password);
         setSuccess('Account created! Welcome to Vyana Soul ✦');
-        setTimeout(() => {
-          closeLoginModal();
-          navigate('/');
-        }, 1000);
+        setTimeout(() => { closeLoginModal(); }, 1000);
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
@@ -109,19 +87,14 @@ export default function LoginModal() {
     }
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     closeLoginModal();
-    navigate('/');
   };
 
   const goToDashboard = () => {
     closeLoginModal();
-    if (isAdmin) {
-      navigate('/admin');
-    } else {
-      navigate('/');
-    }
+    navigate('/dashboard');
   };
 
   // ── Colours ─────────────────────────────────────────────
@@ -155,7 +128,7 @@ export default function LoginModal() {
           >
             <div
               className="relative w-full max-w-md rounded-2xl shadow-2xl overflow-hidden"
-              style={{ background: bg, border: `1px solid ${cardBorder}`, pointerEvents: 'auto', maxHeight: '100dvh', overflowY: 'auto' }}
+              style={{ background: bg, border: `1px solid ${cardBorder}`, pointerEvents: 'auto', maxHeight: '90vh', overflowY: 'auto' }}
               onClick={e => e.stopPropagation()}
             >
               {/* Glow */}
@@ -169,7 +142,7 @@ export default function LoginModal() {
                 <X className="w-4 h-4" />
               </button>
 
-              <div className="p-5 sm:p-7 pt-6 sm:pt-8 pb-8 sm:pb-7">
+              <div className="p-7 pt-8">
                 {user ? (
                   /* ── Logged-in mini-dashboard ── */
                   <div>
@@ -178,35 +151,28 @@ export default function LoginModal() {
                         <img src={user.avatar} alt={user.name} className="w-14 h-14 rounded-full object-cover ring-2 ring-purple-500/30" />
                       ) : (
                         <div className="w-14 h-14 rounded-full flex items-center justify-center text-white text-xl font-bold flex-shrink-0"
-                          style={{ background: isAdmin ? 'linear-gradient(135deg, #F59E0B, #D97706)' : 'linear-gradient(135deg, #7C3AED, #a855f7)' }}>
+                          style={{ background: 'linear-gradient(135deg, #7C3AED, #a855f7)' }}>
                           {user.name.charAt(0).toUpperCase()}
                         </div>
                       )}
                       <div>
                         <p className="font-semibold" style={{ color: textPrimary }}>{user.name}</p>
                         <p className="text-sm truncate max-w-[200px]" style={{ color: textMuted }}>{user.email}</p>
-                        <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full text-xs font-medium"
-                          style={{
-                            background: isAdmin ? 'rgba(245,158,11,0.15)' : 'rgba(124,58,237,0.15)',
-                            color: isAdmin ? '#D97706' : '#7C3AED'
-                          }}>
-                          {isAdmin && <Shield className="w-3 h-3" />}
-                          {isAdmin ? 'Admin' : 'User'}
+                        <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-medium"
+                          style={{ background: 'rgba(124,58,237,0.15)', color: '#7C3AED' }}>
+                          {user.role ?? 'student'}
                         </span>
                       </div>
                     </div>
 
-                    {isAdmin && (
-                      <motion.button
-                        whileHover={{ scale: 1.02, boxShadow: '0 4px 20px rgba(245,158,11,0.35)' }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={goToDashboard}
-                        className="w-full py-3 rounded-xl text-white font-medium text-sm flex items-center justify-center gap-2 mb-3"
-                        style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)' }}>
-                        <Shield className="w-4 h-4" />
-                        Admin Panel
-                      </motion.button>
-                    )}
+                    <motion.button
+                      whileHover={{ scale: 1.02, boxShadow: '0 4px 20px rgba(124,58,237,0.35)' }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={goToDashboard}
+                      className="w-full py-3 rounded-xl text-white font-medium text-sm flex items-center justify-center gap-2 mb-3"
+                      style={{ background: 'linear-gradient(135deg, #7C3AED, #6D28D9)' }}>
+                      <LayoutDashboard className="w-4 h-4" /> My Dashboard
+                    </motion.button>
 
                     <button onClick={handleLogout}
                       className="w-full py-3 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-all hover:opacity-80"
@@ -220,79 +186,62 @@ export default function LoginModal() {
                     {/* Header */}
                     <div className="text-center mb-6">
                       <div className="w-12 h-12 rounded-2xl mx-auto mb-3 flex items-center justify-center"
-                        style={{ background: isAdminTyping ? 'linear-gradient(135deg, #F59E0B, #D97706)' : 'linear-gradient(135deg, #7C3AED, #6D28D9)' }}>
-                        <span className="text-white text-xl">{isAdminTyping ? '🛡️' : '✦'}</span>
+                        style={{ background: 'linear-gradient(135deg, #7C3AED, #6D28D9)' }}>
+                        <span className="text-white text-xl">✦</span>
                       </div>
                       <h2 className="text-xl font-bold" style={{ color: textPrimary }}>
-                        {isAdminTyping ? 'Admin Login' : tab === 'login' ? 'Welcome Back' : 'Create Account'}
+                        {tab === 'login' ? 'Welcome Back' : 'Create Account'}
                       </h2>
                       <p className="text-sm mt-1" style={{ color: textMuted }}>
-                        {isAdminTyping ? 'Sign in with your admin credentials' : tab === 'login' ? 'Sign in to your Vyana Soul account' : 'Begin your spiritual journey'}
+                        {tab === 'login' ? 'Sign in to your Vyana Soul account' : 'Begin your spiritual journey'}
                       </p>
                     </div>
 
-                    {/* Tabs — hidden when admin email is detected */}
-                    {!isAdminTyping && (
-                      <div className="flex rounded-xl p-1 mb-5" style={{ background: isDark ? 'rgba(124,58,237,0.08)' : 'rgba(124,58,237,0.05)', border: `1px solid ${inputBorder}` }}>
-                        {(['login', 'signup'] as Tab[]).map(t => (
-                          <button key={t} onClick={() => setTab(t)}
-                            className="flex-1 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-1.5"
-                            style={{
-                              background: tab === t ? 'linear-gradient(135deg, #7C3AED, #6D28D9)' : 'transparent',
-                              color: tab === t ? 'white' : textMuted,
-                            }}>
-                            {t === 'login' ? <><LogIn className="w-3.5 h-3.5" /> Sign In</> : <><UserPlus className="w-3.5 h-3.5" /> Sign Up</>}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Admin badge */}
-                    {isAdminTyping && (
-                      <div className="flex items-center gap-2 px-3 py-2 rounded-xl mb-4"
-                        style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)' }}>
-                        <Shield className="w-4 h-4 text-amber-600" />
-                        <span className="text-xs font-medium text-amber-700 dark:text-amber-400">
-                          Admin account detected — login only
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Google OAuth — only show for non-admin */}
-                    {!isAdminTyping && (
-                      <>
-                        <button
-                          type="button"
-                          onClick={handleGoogle}
-                          disabled={googleLoading}
-                          className="w-full flex items-center justify-center gap-2.5 py-2.5 rounded-xl text-sm font-medium transition-all mb-4 hover:opacity-80"
+                    {/* Tabs */}
+                    <div className="flex rounded-xl p-1 mb-5" style={{ background: isDark ? 'rgba(124,58,237,0.08)' : 'rgba(124,58,237,0.05)', border: `1px solid ${inputBorder}` }}>
+                      {(['login', 'signup'] as Tab[]).map(t => (
+                        <button key={t} onClick={() => setTab(t)}
+                          className="flex-1 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-1.5"
                           style={{
-                            background: isDark ? 'rgba(255,255,255,0.06)' : '#F8F8F8',
-                            border: `1px solid ${isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.1)'}`,
-                            color: textPrimary,
-                            cursor: googleLoading ? 'not-allowed' : 'pointer',
+                            background: tab === t ? 'linear-gradient(135deg, #7C3AED, #6D28D9)' : 'transparent',
+                            color: tab === t ? 'white' : textMuted,
                           }}>
-                          {googleLoading ? (
-                            <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-                            </svg>
-                          ) : <GoogleIcon />}
-                          Continue with Google
+                          {t === 'login' ? <><LogIn className="w-3.5 h-3.5" /> Sign In</> : <><UserPlus className="w-3.5 h-3.5" /> Sign Up</>}
                         </button>
+                      ))}
+                    </div>
 
-                        {/* Divider */}
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="flex-1 h-px" style={{ background: inputBorder }} />
-                          <span className="text-xs" style={{ color: textMuted }}>or continue with email</span>
-                          <div className="flex-1 h-px" style={{ background: inputBorder }} />
-                        </div>
-                      </>
-                    )}
+                    {/* Google OAuth */}
+                    <button
+                      type="button"
+                      onClick={handleGoogle}
+                      disabled={googleLoading}
+                      className="w-full flex items-center justify-center gap-2.5 py-2.5 rounded-xl text-sm font-medium transition-all mb-4 hover:opacity-80"
+                      style={{
+                        background: isDark ? 'rgba(255,255,255,0.06)' : '#F8F8F8',
+                        border: `1px solid ${isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.1)'}`,
+                        color: textPrimary,
+                        cursor: googleLoading ? 'not-allowed' : 'pointer',
+                      }}>
+                      {googleLoading ? (
+                        <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                        </svg>
+                      ) : <GoogleIcon />}
+                      Continue with Google
+                    </button>
+
+                    {/* Divider */}
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="flex-1 h-px" style={{ background: inputBorder }} />
+                      <span className="text-xs" style={{ color: textMuted }}>or continue with email</span>
+                      <div className="flex-1 h-px" style={{ background: inputBorder }} />
+                    </div>
 
                     {/* Form */}
                     <form onSubmit={handleSubmit} className="space-y-3">
-                      {tab === 'signup' && !isAdminTyping && (
+                      {tab === 'signup' && (
                         <div className="relative">
                           <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: textMuted }} />
                           <input
@@ -346,13 +295,11 @@ export default function LoginModal() {
                       </AnimatePresence>
 
                       <motion.button type="submit" disabled={loading}
-                        whileHover={{ scale: 1.02, boxShadow: isAdminTyping ? '0 6px 24px rgba(245,158,11,0.4)' : '0 6px 24px rgba(124,58,237,0.4)' }}
+                        whileHover={{ scale: 1.02, boxShadow: '0 6px 24px rgba(124,58,237,0.4)' }}
                         whileTap={{ scale: 0.98 }}
                         className="w-full py-3 rounded-xl text-white font-medium text-sm flex items-center justify-center gap-2"
                         style={{
-                          background: loading
-                            ? (isAdminTyping ? 'rgba(245,158,11,0.5)' : 'rgba(124,58,237,0.5)')
-                            : (isAdminTyping ? 'linear-gradient(135deg, #F59E0B, #D97706)' : 'linear-gradient(135deg, #7C3AED, #6D28D9)'),
+                          background: loading ? 'rgba(124,58,237,0.5)' : 'linear-gradient(135deg, #7C3AED, #6D28D9)',
                           cursor: loading ? 'not-allowed' : 'pointer',
                         }}>
                         {loading ? (
@@ -360,8 +307,6 @@ export default function LoginModal() {
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="white" strokeWidth="4" />
                             <path className="opacity-75" fill="white" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
                           </svg>
-                        ) : isAdminTyping ? (
-                          <><Shield className="w-4 h-4" /> Admin Sign In</>
                         ) : tab === 'login' ? (
                           <><LogIn className="w-4 h-4" /> Sign In</>
                         ) : (

@@ -2,8 +2,8 @@ import { createBrowserRouter } from 'react-router';
 import { Layout } from './components/Layout';
 import Home from './pages/Home';
 import Blog from './pages/Blog';
+import Dashboard from './pages/Dashboard';
 import CoursesPage from './pages/Courses';
-import Admin from './pages/Admin';
 
 function NotFound() {
   return (
@@ -37,7 +37,7 @@ export const router = createBrowserRouter([
       { index: true, Component: Home },
       { path: 'blog', Component: Blog },
       { path: 'courses', Component: CoursesPage },
-      { path: 'admin', Component: Admin },
+      { path: 'dashboard', Component: Dashboard },
       { path: '*', Component: NotFound },
     ],
   },
