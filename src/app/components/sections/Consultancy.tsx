@@ -27,7 +27,7 @@ export default function Consultancy() {
   const onSubmit = async (data: FormData) => {
     setSubmitError('');
     try {
-      const res = await apiFetch('/consultancy', null, {
+      const res = await apiFetch('/consultancy', '', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -228,6 +228,7 @@ export default function Consultancy() {
                       </>
                     )}
                   </motion.button>
+                  {submitError && <div className="text-red-400 text-sm text-center mt-2 p-2 bg-red-400/10 rounded-lg">{submitError}</div>}
 
                   <p className="text-purple-300/50 text-xs text-center">{t.consultancy.confidentialNote}</p>
                 </form>

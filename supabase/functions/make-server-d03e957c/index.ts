@@ -408,11 +408,11 @@ app.post("/make-server-d03e957c/consultancy", async (c) => {
     const { data, error } = await supabase.from("consultancy_requests").insert({
       full_name: fullName,
       email: email,
-      phone: phone || null,
-      service: service || null,
-      preferred_time: preferredTime || null,
-      message: message || null,
-      status: "pending",
+      phone: phone || "",
+      service: service || "",
+      preferred_time: preferredTime || "",
+      message: message || "",
+      status: "new",
     }).select().single();
 
     if (error) {
@@ -421,8 +421,8 @@ app.post("/make-server-d03e957c/consultancy", async (c) => {
     }
 
     // Attempt to send Telegram message
-    const botToken = Deno.env.get("TELEGRAM_BOT_TOKEN");
-    const chatId = Deno.env.get("TELEGRAM_CHAT_ID");
+    const botToken = "8998508406:AAF2h2xdYJNiAw34ns7KwGOhfcw8t9VODoY";
+    const chatId = "-1004474709313";
     if (botToken && chatId) {
       const tgMessage = `🔔 *New Consultancy Request*\n\n*Name:* ${fullName}\n*Email:* ${email}\n*Phone:* ${phone || "N/A"}\n*Service:* ${service || "N/A"}\n*Time:* ${preferredTime || "N/A"}\n*Message:* ${message || "N/A"}`;
       
