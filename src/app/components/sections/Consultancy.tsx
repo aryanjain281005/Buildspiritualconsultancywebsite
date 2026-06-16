@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { useForm } from 'react-hook-form';
 import { Send, CheckCircle, Star, Zap, Shield, Clock, Phone, Mail } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import { getSupabase } from '../../context/AuthContext';
 
 const CONSULTANCY_BG = 'https://images.unsplash.com/photo-1769406525627-badf92979131?w=1200&q=80';
 
@@ -20,14 +21,30 @@ interface FormData {
 export default function Consultancy() {
   const { t } = useLanguage();
   const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm<FormData>();
 
   const onSubmit = async (data: FormData) => {
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    console.log('Booking submitted:', data);
-    setSubmitted(true);
-    reset();
-    setTimeout(() => setSubmitted(false), 6000);
+    setSubmitError('');
+    try {
+      const supabase = getSupabase();
+      const { error } = await supabase.from('consultancy_requests').insert({
+        full_name: data.fullName,
+        email: data.email,
+        phone: data.phone || null,
+        service: data.service || null,
+        preferred_time: data.preferredTime || null,
+        message: data.message || null,
+        status: 'pending',
+      });
+      if (error) throw new Error(error.message);
+      setSubmitted(true);
+      reset();
+      setTimeout(() => setSubmitted(false), 6000);
+    } catch (err: unknown) {
+      console.log('Consultancy submit error:', err);
+      setSubmitError(err instanceof Error ? err.message : 'Failed to submit. Please try again.');
+    }
   };
 
   return (

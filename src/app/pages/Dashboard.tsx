@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router';
 import {
   LayoutDashboard, BookOpen, Calendar, User, LogOut,
   Plus, X, Clock, CheckCircle2, XCircle, ChevronRight,
-  Sparkles, Phone, Mail, Bell, Settings, Shield,
+  Sparkles, Phone, Mail, Bell, Settings, Shield, MessageSquare,
 } from 'lucide-react';
 import { useAuth, apiFetch, getSupabase } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -20,6 +20,18 @@ interface Booking {
   time: string;
   notes: string;
   status: 'pending' | 'confirmed' | 'cancelled';
+  createdAt: string;
+}
+
+interface ConsultancyRequest {
+  id: string;
+  fullName: string;
+  email: string;
+  phone?: string;
+  service?: string;
+  preferredTime?: string;
+  message?: string;
+  status: string;
   createdAt: string;
 }
 
@@ -180,6 +192,7 @@ export default function Dashboard() {
 
   const [activeNav, setActiveNav] = useState<AdminNavKey>(isAdmin ? 'admin' : 'overview');
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [consultancyRequests, setConsultancyRequests] = useState<ConsultancyRequest[]>([]);
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [fetchLoading, setFetchLoading] = useState(false);
   const [fetchError, setFetchError] = useState('');
@@ -197,11 +210,17 @@ export default function Dashboard() {
     setFetchLoading(true);
     setFetchError('');
     try {
-      const [bData, eData] = await Promise.all([
+      const [bData, crData, eData] = await Promise.all([
         supabase
           .from('bookings')
           .select('id, user_id, user_name, user_email, service, booking_date, booking_time, notes, status, created_at, updated_at')
           .order('created_at', { ascending: false }),
+        isAdmin
+          ? supabase
+              .from('consultancy_requests')
+              .select('id, full_name, email, phone, service, preferred_time, message, status, created_at')
+              .order('created_at', { ascending: false })
+          : Promise.resolve({ data: [], error: null }),
         apiFetch('/enrollments', accessToken),
       ]);
 
@@ -219,6 +238,20 @@ export default function Dashboard() {
         status: booking.status,
         createdAt: booking.created_at,
       })));
+
+      if (crData && !crData.error) {
+        setConsultancyRequests((crData.data ?? []).map((cr: any) => ({
+          id: cr.id,
+          fullName: cr.full_name,
+          email: cr.email,
+          phone: cr.phone,
+          service: cr.service,
+          preferredTime: cr.preferred_time,
+          message: cr.message,
+          status: cr.status ?? 'pending',
+          createdAt: cr.created_at,
+        })));
+      }
       setEnrollments(eData.enrollments ?? []);
     } catch (err: unknown) {
       setFetchError(err instanceof Error ? err.message : 'Failed to load data.');
@@ -621,7 +654,7 @@ export default function Dashboard() {
           <p className="text-white/60 text-sm">Accept, decline, or confirm client bookings from one place.</p>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-3">
           <div className="rounded-2xl p-4" style={{ background: cardBg, border: `1px solid ${cardBorder}` }}>
             <p className="text-2xl font-bold" style={{ color: textPrimary }}>{pendingReview.length}</p>
             <p className="text-xs mt-0.5" style={{ color: textMuted }}>Pending approvals</p>
@@ -630,6 +663,50 @@ export default function Dashboard() {
             <p className="text-2xl font-bold" style={{ color: textPrimary }}>{confirmedReview.length}</p>
             <p className="text-xs mt-0.5" style={{ color: textMuted }}>Confirmed bookings</p>
           </div>
+          <div className="rounded-2xl p-4" style={{ background: cardBg, border: `1px solid ${cardBorder}` }}>
+            <p className="text-2xl font-bold" style={{ color: '#F59E0B' }}>{consultancyRequests.length}</p>
+            <p className="text-xs mt-0.5" style={{ color: textMuted }}>Consultancy requests</p>
+          </div>
+        </div>
+
+        {/* Consultancy Requests Section */}
+        <div className="rounded-2xl p-5" style={{ background: cardBg, border: `1px solid ${cardBorder}` }}>
+          <div className="flex items-center gap-2 mb-4">
+            <MessageSquare className="w-4 h-4 text-amber-400" />
+            <h3 className="font-semibold text-sm" style={{ color: textPrimary }}>Consultancy Requests ({consultancyRequests.length})</h3>
+          </div>
+          {consultancyRequests.length === 0 ? (
+            <p className="text-sm" style={{ color: textMuted }}>No consultancy requests yet.</p>
+          ) : (
+            <div className="space-y-3">
+              {consultancyRequests.map((cr) => (
+                <div key={cr.id} className="rounded-xl p-4" style={{ background: inputBg, border: `1px solid ${inputBorder}` }}>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold" style={{ color: textPrimary }}>{cr.fullName}</p>
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+                        <a href={`mailto:${cr.email}`} className="text-xs flex items-center gap-1 hover:underline" style={{ color: '#7C3AED' }}>
+                          <Mail className="w-3 h-3" /> {cr.email}
+                        </a>
+                        {cr.phone && (
+                          <a href={`tel:${cr.phone}`} className="text-xs flex items-center gap-1 hover:underline" style={{ color: '#7C3AED' }}>
+                            <Phone className="w-3 h-3" /> {cr.phone}
+                          </a>
+                        )}
+                      </div>
+                      {cr.service && <p className="text-xs mt-1" style={{ color: textMuted }}>Service: {cr.service}</p>}
+                      {cr.preferredTime && <p className="text-xs mt-0.5" style={{ color: textMuted }}>Preferred time: {cr.preferredTime}</p>}
+                      {cr.message && <p className="text-xs mt-2 italic" style={{ color: textMuted }}>"{cr.message}"</p>}
+                      <p className="text-xs mt-1" style={{ color: textMuted }}>
+                        Submitted {new Date(cr.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </p>
+                    </div>
+                    <StatusBadge status={cr.status} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="rounded-2xl p-5" style={{ background: cardBg, border: `1px solid ${cardBorder}` }}>
