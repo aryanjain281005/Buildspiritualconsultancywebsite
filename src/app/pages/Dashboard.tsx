@@ -216,11 +216,8 @@ export default function Dashboard() {
           .select('id, user_id, user_name, user_email, service, booking_date, booking_time, notes, status, created_at, updated_at')
           .order('created_at', { ascending: false }),
         isAdmin
-          ? supabase
-              .from('consultancy_requests')
-              .select('id, full_name, email, phone, service, preferred_time, message, status, created_at')
-              .order('created_at', { ascending: false })
-          : Promise.resolve({ data: [], error: null }),
+          ? apiFetch('/consultancy', accessToken)
+          : Promise.resolve({ requests: [] }),
         apiFetch('/enrollments', accessToken),
       ]);
 
@@ -240,16 +237,16 @@ export default function Dashboard() {
       })));
 
       if (crData && !crData.error) {
-        setConsultancyRequests((crData.data ?? []).map((cr: any) => ({
+        setConsultancyRequests((crData.requests ?? []).map((cr: any) => ({
           id: cr.id,
-          fullName: cr.full_name,
+          fullName: cr.fullName,
           email: cr.email,
           phone: cr.phone,
           service: cr.service,
-          preferredTime: cr.preferred_time,
+          preferredTime: cr.preferredTime,
           message: cr.message,
           status: cr.status ?? 'pending',
-          createdAt: cr.created_at,
+          createdAt: cr.createdAt,
         })));
       }
       setEnrollments(eData.enrollments ?? []);

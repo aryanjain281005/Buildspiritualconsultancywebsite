@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import { useForm } from 'react-hook-form';
 import { Send, CheckCircle, Star, Zap, Shield, Clock, Phone, Mail } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
-import { getSupabase } from '../../context/AuthContext';
+import { apiFetch } from '../../context/AuthContext';
 
 const CONSULTANCY_BG = 'https://images.unsplash.com/photo-1769406525627-badf92979131?w=1200&q=80';
 
@@ -27,17 +27,12 @@ export default function Consultancy() {
   const onSubmit = async (data: FormData) => {
     setSubmitError('');
     try {
-      const supabase = getSupabase();
-      const { error } = await supabase.from('consultancy_requests').insert({
-        full_name: data.fullName,
-        email: data.email,
-        phone: data.phone || null,
-        service: data.service || null,
-        preferred_time: data.preferredTime || null,
-        message: data.message || null,
-        status: 'pending',
+      const res = await apiFetch('/consultancy', null, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
       });
-      if (error) throw new Error(error.message);
+      if (res.error) throw new Error(res.error);
       setSubmitted(true);
       reset();
       setTimeout(() => setSubmitted(false), 6000);

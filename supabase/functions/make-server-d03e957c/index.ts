@@ -361,4 +361,92 @@ app.put("/make-server-d03e957c/profile", async (c) => {
   }
 });
 
+// ─── CONSULTANCY REQUESTS ───────────────────────────────────
+
+// GET /consultancy
+app.get("/make-server-d03e957c/consultancy", async (c) => {
+  try {
+    const user = await getAuthUser(c.req.header("Authorization") ?? null);
+    if (!user) return c.json({ error: "Unauthorized" }, 401);
+    if (!isAdminUser(user)) return c.json({ error: "Forbidden" }, 403);
+
+    const supabase = bookingsClient();
+    const { data, error } = await supabase
+      .from("consultancy_requests")
+      .select("id, full_name, email, phone, service, preferred_time, message, status, created_at")
+      .order("created_at", { ascending: false });
+
+    if (error) return c.json({ error: error.message }, 500);
+
+    const requests = (data ?? []).map((cr: any) => ({
+      id: cr.id,
+      fullName: cr.full_name,
+      email: cr.email,
+      phone: cr.phone,
+      service: cr.service,
+      preferredTime: cr.preferred_time,
+      message: cr.message,
+      status: cr.status ?? "pending",
+      createdAt: cr.created_at,
+    }));
+    return c.json({ requests });
+  } catch (err) {
+    console.log("Get consultancy error:", err);
+    return c.json({ error: `Error fetching consultancy requests: ${err}` }, 500);
+  }
+});
+
+// POST /consultancy
+app.post("/make-server-d03e957c/consultancy", async (c) => {
+  try {
+    const { fullName, email, phone, service, preferredTime, message } = await c.req.json();
+    if (!fullName || !email) {
+      return c.json({ error: "fullName and email are required." }, 400);
+    }
+
+    const supabase = bookingsClient(); // Uses service_role to bypass RLS
+    const { data, error } = await supabase.from("consultancy_requests").insert({
+      full_name: fullName,
+      email: email,
+      phone: phone || null,
+      service: service || null,
+      preferred_time: preferredTime || null,
+      message: message || null,
+      status: "pending",
+    }).select().single();
+
+    if (error) {
+      console.error("DB Insert Error:", error);
+      return c.json({ error: error.message }, 500);
+    }
+
+    // Attempt to send Telegram message
+    const botToken = Deno.env.get("TELEGRAM_BOT_TOKEN");
+    const chatId = Deno.env.get("TELEGRAM_CHAT_ID");
+    if (botToken && chatId) {
+      const tgMessage = `🔔 *New Consultancy Request*\n\n*Name:* ${fullName}\n*Email:* ${email}\n*Phone:* ${phone || "N/A"}\n*Service:* ${service || "N/A"}\n*Time:* ${preferredTime || "N/A"}\n*Message:* ${message || "N/A"}`;
+      
+      try {
+        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text: tgMessage,
+            parse_mode: "Markdown",
+          }),
+        });
+      } catch (tgErr) {
+        console.error("Telegram error:", tgErr);
+        // Do not fail the request if Telegram fails
+      }
+    }
+
+    return c.json({ request: data });
+  } catch (err) {
+    console.log("Create consultancy error:", err);
+    return c.json({ error: `Error creating consultancy request: ${err}` }, 500);
+  }
+});
+
 Deno.serve(app.fetch);
