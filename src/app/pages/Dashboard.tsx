@@ -211,10 +211,7 @@ export default function Dashboard() {
     setFetchError('');
     try {
       const [bData, crData, eData] = await Promise.all([
-        supabase
-          .from('bookings')
-          .select('id, user_id, user_name, user_email, service, booking_date, booking_time, notes, status, created_at, updated_at')
-          .order('created_at', { ascending: false }),
+        apiFetch('/bookings', accessToken),
         isAdmin
           ? apiFetch('/consultancy', accessToken)
           : Promise.resolve({ requests: [] }),
@@ -223,17 +220,17 @@ export default function Dashboard() {
 
       if (bData.error) throw new Error(bData.error.message);
 
-      setBookings((bData.data ?? []).map((booking) => ({
+      setBookings((bData.bookings ?? []).map((booking: any) => ({
         id: booking.id,
-        userId: booking.user_id,
-        userName: booking.user_name,
-        userEmail: booking.user_email,
+        userId: booking.userId,
+        userName: booking.userName,
+        userEmail: booking.userEmail,
         service: booking.service,
-        date: booking.booking_date,
-        time: booking.booking_time,
+        date: booking.date,
+        time: booking.time,
         notes: booking.notes,
         status: booking.status,
-        createdAt: booking.created_at,
+        createdAt: booking.createdAt,
       })));
 
       if (crData && !crData.error) {
