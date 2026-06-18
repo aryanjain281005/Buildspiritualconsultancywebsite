@@ -431,20 +431,25 @@ app.post("/make-server-d03e957c/consultancy", async (c) => {
     const botToken = "8998508406:AAF2h2xdYJNiAw34ns7KwGOhfcw8t9VODoY";
     const chatId = "-1004474709313";
     if (botToken && chatId) {
-      const tgMessage = `🔔 *New Consultancy Request*\n\n*Name:* ${fullName}\n*Email:* ${email}\n*Phone:* ${phone || "N/A"}\n*Service:* ${service || "N/A"}\n*Time:* ${preferredTime || "N/A"}\n*Message:* ${message || "N/A"}`;
+      const sanitize = (str: string) => str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      const tgMessage = `🔔 <b>New Consultancy Request</b>\n\n<b>Name:</b> ${sanitize(fullName)}\n<b>Email:</b> ${sanitize(email)}\n<b>Phone:</b> ${sanitize(phone || "N/A")}\n<b>Service:</b> ${sanitize(service || "N/A")}\n<b>Time:</b> ${sanitize(preferredTime || "N/A")}\n<b>Message:</b> ${sanitize(message || "N/A")}`;
       
       try {
-        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        const tgRes = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             chat_id: chatId,
             text: tgMessage,
-            parse_mode: "Markdown",
+            parse_mode: "HTML",
           }),
         });
+        if (!tgRes.ok) {
+          const text = await tgRes.text();
+          console.error("Telegram failed:", tgRes.status, text);
+        }
       } catch (tgErr) {
-        console.error("Telegram error:", tgErr);
+        console.error("Telegram network error:", tgErr);
         // Do not fail the request if Telegram fails
       }
     }
