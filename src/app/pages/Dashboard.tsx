@@ -207,46 +207,52 @@ export default function Dashboard() {
 
   const fetchData = useCallback(async () => {
     if (!accessToken) return;
-    setFetchLoading(true);
-    setFetchError('');
     try {
-      const [bData, crData, eData] = await Promise.all([
-        apiFetch('/bookings', accessToken),
-        isAdmin
-          ? apiFetch('/consultancy', accessToken)
-          : Promise.resolve({ requests: [] }),
-        apiFetch('/enrollments', accessToken),
-      ]);
-
-      if (bData.error) throw new Error(bData.error.message);
-
-      setBookings((bData.bookings ?? []).map((booking: any) => ({
-        id: booking.id,
-        userId: booking.userId,
-        userName: booking.userName,
-        userEmail: booking.userEmail,
-        service: booking.service,
-        date: booking.date,
-        time: booking.time,
-        notes: booking.notes,
-        status: booking.status,
-        createdAt: booking.createdAt,
-      })));
-
-      if (crData && !crData.error) {
-        setConsultancyRequests((crData.requests ?? []).map((cr: any) => ({
-          id: cr.id,
-          fullName: cr.fullName,
-          email: cr.email,
-          phone: cr.phone,
-          service: cr.service,
-          preferredTime: cr.preferredTime,
-          message: cr.message,
-          status: cr.status ?? 'pending',
-          createdAt: cr.createdAt,
+      const bRes = await apiFetch('/bookings', accessToken).catch(e => ({ error: e.message }));
+      if (bRes.error) {
+        console.error('Bookings fetch error:', bRes.error);
+        setFetchError(`Bookings: ${bRes.error}`);
+      } else {
+        setBookings((bRes.bookings ?? []).map((booking: any) => ({
+          id: booking.id,
+          userId: booking.userId,
+          userName: booking.userName,
+          userEmail: booking.userEmail,
+          service: booking.service,
+          date: booking.date,
+          time: booking.time,
+          notes: booking.notes,
+          status: booking.status,
+          createdAt: booking.createdAt,
         })));
       }
-      setEnrollments(eData.enrollments ?? []);
+
+      if (isAdmin) {
+        const crRes = await apiFetch('/consultancy', accessToken).catch(e => ({ error: e.message }));
+        if (crRes.error) {
+          console.error('Consultancy fetch error:', crRes.error);
+          setFetchError(prev => prev ? `${prev} | Consultancy: ${crRes.error}` : `Consultancy: ${crRes.error}`);
+        } else {
+          setConsultancyRequests((crRes.requests ?? []).map((cr: any) => ({
+            id: cr.id,
+            fullName: cr.fullName,
+            email: cr.email,
+            phone: cr.phone,
+            service: cr.service,
+            preferredTime: cr.preferredTime,
+            message: cr.message,
+            status: cr.status ?? 'pending',
+            createdAt: cr.createdAt,
+          })));
+        }
+      }
+
+      const eRes = await apiFetch('/enrollments', accessToken).catch(e => ({ error: e.message }));
+      if (eRes.error) {
+        console.error('Enrollments fetch error:', eRes.error);
+      } else {
+        setEnrollments(eRes.enrollments ?? []);
+      }
     } catch (err: unknown) {
       setFetchError(err instanceof Error ? err.message : 'Failed to load data.');
       console.log('Dashboard fetch error:', err);
@@ -647,6 +653,12 @@ export default function Dashboard() {
           <h2 className="text-2xl font-bold text-white mb-1">Booking Review Dashboard</h2>
           <p className="text-white/60 text-sm">Accept, decline, or confirm client bookings from one place.</p>
         </div>
+
+        {fetchError && (
+          <div className="rounded-xl p-4 text-sm" style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }}>
+            {fetchError}
+          </div>
+        )}
 
         <div className="grid grid-cols-3 gap-3">
           <div className="rounded-2xl p-4" style={{ background: cardBg, border: `1px solid ${cardBorder}` }}>
