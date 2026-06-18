@@ -376,7 +376,14 @@ app.get("/make-server-d03e957c/consultancy", async (c) => {
       .select("id, full_name, email, phone, service, preferred_time, message, status, created_at")
       .order("created_at", { ascending: false });
 
-    if (error) return c.json({ error: error.message }, 500);
+    if (error) {
+      console.log("DB Error fetching requests:", error);
+      return c.json({ error: error.message }, 500);
+    }
+
+    console.log("Auth user email:", user?.email);
+    console.log("isAdminUser check:", isAdminUser(user));
+    console.log("Requests fetched from DB length:", data?.length);
 
     const requests = (data ?? []).map((cr: any) => ({
       id: cr.id,

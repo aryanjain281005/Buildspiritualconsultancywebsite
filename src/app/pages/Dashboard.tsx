@@ -260,7 +260,7 @@ export default function Dashboard() {
     } finally {
       setFetchLoading(false);
     }
-  }, [accessToken]);
+  }, [accessToken, isAdmin, supabase]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
