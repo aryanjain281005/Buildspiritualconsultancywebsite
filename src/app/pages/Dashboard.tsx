@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import {
   LayoutDashboard, BookOpen, Calendar, User, LogOut,
   Plus, X, Clock, CheckCircle2, XCircle, ChevronRight,
@@ -190,7 +190,11 @@ export default function Dashboard() {
     ? [...BASE_NAV, { key: 'admin' as const, label: 'Admin Dashboard', icon: <Shield className="w-4 h-4" /> }]
     : BASE_NAV;
 
-  const [activeNav, setActiveNav] = useState<AdminNavKey>(isAdmin ? 'admin' : 'overview');
+  const [searchParams] = useSearchParams();
+  const tabParam = searchParams.get('tab');
+  const [activeNav, setActiveNav] = useState<AdminNavKey>(
+    tabParam === 'admin' && isAdmin ? 'admin' : isAdmin ? 'admin' : 'overview'
+  );
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [consultancyRequests, setConsultancyRequests] = useState<ConsultancyRequest[]>([]);
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link, useNavigate, useLocation } from 'react-router';
-import { Sun, Moon, Menu, X, ArrowRight, LogIn, User } from 'lucide-react';
+import { Sun, Moon, Menu, X, ArrowRight, LogIn, User, Shield } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
@@ -157,6 +157,20 @@ export default function Header() {
                 <ArrowRight className="w-3.5 h-3.5" />
               </motion.button>
 
+              {/* Admin Panel CTA — only for admin users */}
+              {user?.role === 'admin' && (
+                <motion.button
+                  whileHover={{ scale: 1.05, boxShadow: '0 4px 20px rgba(245,158,11,0.4)' }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => navigate('/dashboard?tab=admin')}
+                  className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl text-white text-xs font-semibold"
+                  style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)' }}
+                >
+                  <Shield className="w-3.5 h-3.5" />
+                  Admin
+                </motion.button>
+              )}
+
               {/* Login / User Button */}
               <motion.button
                 whileHover={{ scale: 1.05 }}
@@ -240,6 +254,17 @@ export default function Header() {
                 {t.nav.bookSession}
                 <ArrowRight className="w-4 h-4" />
               </motion.button>
+
+              {/* Mobile Admin Panel Button */}
+              {user?.role === 'admin' && (
+                <motion.button initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
+                  onClick={() => { setMobileOpen(false); navigate('/dashboard?tab=admin'); }}
+                  className="w-full py-3.5 rounded-xl text-white font-medium text-sm flex items-center justify-center gap-2 mt-2"
+                  style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)' }}>
+                  <Shield className="w-4 h-4" />
+                  Admin Panel
+                </motion.button>
+              )}
             </div>
           </motion.div>
         )}
