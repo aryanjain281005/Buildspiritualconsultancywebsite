@@ -15,7 +15,7 @@ export function getSupabase(): SupabaseClient {
 }
 
 const SERVER_URL = `https://${projectId}.supabase.co/functions/v1/make-server-d03e957c`;
-const ADMIN_EMAILS = ['aryanjain281005@gmail.com', 'vyanasoul369@vyanasoul.com'];
+const ADMIN_EMAILS = ['aryanjain281005@gmail.com', 'vyanasoul369@vyanasoul.com', 'vyanasoul369@gmail.com'];
 
 // ── Types ──────────────────────────────────────────────────
 export interface VyanaUser {

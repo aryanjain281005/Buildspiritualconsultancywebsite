@@ -5,7 +5,7 @@ import { createClient } from "npm:@supabase/supabase-js";
 import * as kv from "./kv_store.ts";
 
 const app = new Hono();
-const ADMIN_EMAILS = ["aryanjain281005@gmail.com", "vyanasoul369@vyanasoul.com"];
+const ADMIN_EMAILS = ["aryanjain281005@gmail.com", "vyanasoul369@vyanasoul.com", "vyanasoul369@gmail.com"];
 
 app.use('*', logger(console.log));
 
