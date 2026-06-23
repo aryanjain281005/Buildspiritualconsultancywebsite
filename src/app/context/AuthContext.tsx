@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     name: u.user_metadata?.name ?? u.user_metadata?.full_name ?? u.email?.split('@')[0] ?? 'User',
     email: u.email ?? '',
     avatar: u.user_metadata?.avatar_url,
-    role: (u.user_metadata?.role ?? (u.email && ADMIN_EMAILS.includes(u.email.toLowerCase()) ? 'admin' : 'student')),
+    role: (u.email && ADMIN_EMAILS.includes(u.email.toLowerCase()) ? 'admin' : (u.user_metadata?.role as string ?? 'student')),
   }), []);
 
   // Restore session on mount

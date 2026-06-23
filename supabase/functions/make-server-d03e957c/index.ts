@@ -461,4 +461,41 @@ app.post("/make-server-d03e957c/consultancy", async (c) => {
   }
 });
 
+// GET /resend-telegram
+app.get("/make-server-d03e957c/resend-telegram", async (c) => {
+  try {
+    const supabase = bookingsClient();
+    const { data, error } = await supabase
+      .from("consultancy_requests")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    if (error) return c.json({ error: error.message }, 500);
+
+    const botToken = "8998508406:AAF2h2xdYJNiAw34ns7KwGOhfcw8t9VODoY";
+    const chatId = "-1004474709313";
+    const sanitize = (str: string) => (str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    
+    let sent = 0;
+    const reversed = [...(data || [])].reverse(); // Send oldest to newest
+    for (const req of reversed) {
+      const tgMessage = `🔔 <b>Missed Consultancy Request</b>\n\n<b>Name:</b> ${sanitize(req.full_name)}\n<b>Email:</b> ${sanitize(req.email)}\n<b>Phone:</b> ${sanitize(req.phone)}\n<b>Service:</b> ${sanitize(req.service)}\n<b>Time:</b> ${sanitize(req.preferred_time)}\n<b>Message:</b> ${sanitize(req.message)}`;
+      const tgRes = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: chatId, text: tgMessage, parse_mode: "HTML" }),
+      });
+      if (tgRes.ok) sent++;
+      else console.error("TG Resend failed:", await tgRes.text());
+      // Sleep slightly to avoid rate limit
+      await new Promise(r => setTimeout(r, 200));
+    }
+    
+    return c.json({ message: `Successfully resent ${sent} notifications.` });
+  } catch (err) {
+    return c.json({ error: `Error resending: ${err}` }, 500);
+  }
+});
+
 Deno.serve(app.fetch);
