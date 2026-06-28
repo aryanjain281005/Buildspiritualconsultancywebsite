@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, ZoomIn, Camera } from 'lucide-react';
 import Masonry, { ResponsiveMasonry } from 'react-responsive-masonry';
@@ -28,9 +28,29 @@ const allCategories = ['All', 'Practice', 'Healing', 'Reading', 'Spiritual', 'Po
 export default function Gallery() {
   const { t } = useLanguage();
   const [activeCategory, setActiveCategory] = useState('All');
-  const [lightboxImg, setLightboxImg] = useState<typeof galleryItems[0] | null>(null);
+  const [lightboxImg, setLightboxImg] = useState<any>(null);
+  const [dbImages, setDbImages] = useState<any[]>([]);
 
-  const filtered = activeCategory === 'All' ? galleryItems : galleryItems.filter(img => img.category === activeCategory);
+  // Fetch images from API
+  useEffect(() => {
+    fetch('https://xvdoutqezjsuogankqna.supabase.co/functions/v1/make-server-d03e957c/gallery')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.images && data.images.length > 0) {
+          const formatted = data.images.map((img: any) => ({
+            id: img.id,
+            src: img.image_url,
+            title: img.title || 'Gallery Image',
+            category: img.category || 'Practice'
+          }));
+          setDbImages(formatted);
+        }
+      })
+      .catch(err => console.error("Error fetching gallery:", err));
+  }, []);
+
+  const displayItems = dbImages.length > 0 ? dbImages : galleryItems;
+  const filtered = activeCategory === 'All' ? displayItems : displayItems.filter(img => img.category === activeCategory);
 
   return (
     <section id="gallery" className="py-24 md:py-32 bg-[#FAF8FF] dark:bg-[#0B0720] relative overflow-hidden">

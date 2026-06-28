@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useAuth, apiFetch, getSupabase } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import AdminPanelFull from '../components/AdminPanelFull';
 
 // ── Types ──────────────────────────────────────────────────
 interface Booking {
@@ -643,191 +644,35 @@ export default function Dashboard() {
     </div>
   );
 
+  const handleConsultancyStatusChange = async (id: string, status: string) => {
+    if (!accessToken) return;
+    try {
+      await apiFetch(`/consultancy/${id}/status`, accessToken, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+      setConsultancyRequests(prev => prev.map(cr => cr.id === id ? { ...cr, status } : cr));
+    } catch (err) {
+      console.error('Failed to update consultancy status:', err);
+    }
+  };
+
   const AdminPanel = () => {
-    const pendingReview = validBookings.filter(b => b.status === 'pending');
-    const confirmedReview = validBookings.filter(b => b.status === 'confirmed');
-    const otherReview = validBookings.filter(b => b.status === 'cancelled');
-
     return (
-      <div className="space-y-6">
-        <div className="rounded-2xl p-6 relative overflow-hidden"
-          style={{ background: 'linear-gradient(135deg, #0F172A 0%, #312E81 55%, #7C3AED 100%)' }}>
-          <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 80% 20%, white, transparent 60%)' }} />
-          <p className="text-white/70 text-sm mb-1">Admin access</p>
-          <h2 className="text-2xl font-bold text-white mb-1">Booking Review Dashboard</h2>
-          <p className="text-white/60 text-sm">Accept, decline, or confirm client bookings from one place.</p>
-        </div>
-
-        {fetchError && (
-          <div className="rounded-xl p-4 text-sm" style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }}>
-            {fetchError}
-          </div>
-        )}
-
-        <div className="grid grid-cols-3 gap-3">
-          <div className="rounded-2xl p-4" style={{ background: cardBg, border: `1px solid ${cardBorder}` }}>
-            <p className="text-2xl font-bold" style={{ color: textPrimary }}>{pendingReview.length}</p>
-            <p className="text-xs mt-0.5" style={{ color: textMuted }}>Pending approvals</p>
-          </div>
-          <div className="rounded-2xl p-4" style={{ background: cardBg, border: `1px solid ${cardBorder}` }}>
-            <p className="text-2xl font-bold" style={{ color: textPrimary }}>{confirmedReview.length}</p>
-            <p className="text-xs mt-0.5" style={{ color: textMuted }}>Confirmed bookings</p>
-          </div>
-          <div className="rounded-2xl p-4" style={{ background: cardBg, border: `1px solid ${cardBorder}` }}>
-            <p className="text-2xl font-bold" style={{ color: '#F59E0B' }}>{consultancyRequests.length}</p>
-            <p className="text-xs mt-0.5" style={{ color: textMuted }}>Consultancy requests</p>
-          </div>
-        </div>
-
-        {/* Consultancy Requests Section */}
-        <div className="rounded-2xl p-5" style={{ background: cardBg, border: `1px solid ${cardBorder}` }}>
-          <div className="flex items-center gap-2 mb-4">
-            <MessageSquare className="w-4 h-4 text-amber-400" />
-            <h3 className="font-semibold text-sm" style={{ color: textPrimary }}>Consultancy Requests ({consultancyRequests.length})</h3>
-          </div>
-          {consultancyRequests.length === 0 ? (
-            <p className="text-sm" style={{ color: textMuted }}>No consultancy requests yet.</p>
-          ) : (
-            <div className="space-y-3">
-              {consultancyRequests.map((cr) => (
-                <div key={cr.id} className="rounded-xl p-4" style={{ background: inputBg, border: `1px solid ${inputBorder}` }}>
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0 flex-1">
-                      <p className="font-semibold" style={{ color: textPrimary }}>{cr.fullName}</p>
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
-                        <a href={`mailto:${cr.email}`} className="text-xs flex items-center gap-1 hover:underline" style={{ color: '#7C3AED' }}>
-                          <Mail className="w-3 h-3" /> {cr.email}
-                        </a>
-                        {cr.phone && (
-                          <a href={`tel:${cr.phone}`} className="text-xs flex items-center gap-1 hover:underline" style={{ color: '#7C3AED' }}>
-                            <Phone className="w-3 h-3" /> {cr.phone}
-                          </a>
-                        )}
-                      </div>
-                      {cr.service && <p className="text-xs mt-1" style={{ color: textMuted }}>Service: {cr.service}</p>}
-                      {cr.preferredTime && <p className="text-xs mt-0.5" style={{ color: textMuted }}>Preferred time: {cr.preferredTime}</p>}
-                      {cr.message && <p className="text-xs mt-2 italic" style={{ color: textMuted }}>"{cr.message}"</p>}
-                      <p className="text-xs mt-1" style={{ color: textMuted }}>
-                        Submitted {new Date(cr.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                      </p>
-                    </div>
-                    <StatusBadge status={cr.status} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="rounded-2xl p-5" style={{ background: cardBg, border: `1px solid ${cardBorder}` }}>
-          <h3 className="font-semibold mb-2 text-sm" style={{ color: textPrimary }}>Pending requests</h3>
-          <p className="text-xs mb-4" style={{ color: textMuted }}>
-            Only pending bookings can be accepted or declined. Confirmed and cancelled bookings are shown below for reference.
-          </p>
-          {pendingReview.length === 0 ? (
-            <p className="text-sm" style={{ color: textMuted }}>No bookings waiting for approval right now.</p>
-          ) : (
-            <div className="space-y-3">
-              {pendingReview.map((b) => (
-                <div key={b.id} className="rounded-xl p-4" style={{ background: inputBg, border: `1px solid ${inputBorder}` }}>
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0">
-                      <p className="font-semibold truncate" style={{ color: textPrimary }}>{b.service}</p>
-                      <p className="text-xs mt-1" style={{ color: textMuted }}>
-                        {new Date(b.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}{b.time ? ` · ${b.time}` : ''}
-                      </p>
-                      <p className="text-xs mt-1" style={{ color: textMuted }}>
-                        Booked by {b.userName ?? 'Unknown user'} {b.userEmail ? `· ${b.userEmail}` : ''}
-                      </p>
-                      {b.notes && <p className="text-xs mt-2 italic" style={{ color: textMuted }}>{b.notes}</p>}
-                    </div>
-                    <div className="flex flex-col gap-2 flex-shrink-0">
-                      <button onClick={() => handleUpdateBookingStatus(b.id, 'confirmed')}
-                        className="px-3 py-1.5 rounded-lg text-xs font-medium text-white"
-                        style={{ background: 'linear-gradient(135deg, #16a34a, #22c55e)' }}>
-                        Accept
-                      </button>
-                      <button onClick={() => handleUpdateBookingStatus(b.id, 'cancelled')}
-                        className="px-3 py-1.5 rounded-lg text-xs font-medium"
-                        style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.18)' }}>
-                        Decline
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="rounded-2xl p-5" style={{ background: cardBg, border: `1px solid ${cardBorder}` }}>
-          <h3 className="font-semibold mb-4 text-sm" style={{ color: textPrimary }}>All bookings</h3>
-          {validBookings.length === 0 ? (
-            <p className="text-sm" style={{ color: textMuted }}>There are no bookings yet. As soon as a client submits one, it will appear here.</p>
-          ) : (
-            <div className="space-y-3">
-              {validBookings.map((b) => (
-                <div key={b.id} className="rounded-xl p-4" style={{ background: inputBg, border: `1px solid ${inputBorder}` }}>
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0">
-                      <p className="font-semibold truncate" style={{ color: textPrimary }}>{b.service}</p>
-                      <p className="text-xs mt-1" style={{ color: textMuted }}>
-                        {new Date(b.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}{b.time ? ` · ${b.time}` : ''}
-                      </p>
-                      <p className="text-xs mt-1" style={{ color: textMuted }}>
-                        Booked by {b.userName ?? 'Unknown user'} {b.userEmail ? `· ${b.userEmail}` : ''}
-                      </p>
-                    </div>
-                    <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                      <StatusBadge status={b.status} />
-                      {b.status === 'pending' && (
-                        <div className="flex gap-2">
-                          <button onClick={() => handleUpdateBookingStatus(b.id, 'confirmed')}
-                            className="px-3 py-1.5 rounded-lg text-xs font-medium text-white"
-                            style={{ background: 'linear-gradient(135deg, #16a34a, #22c55e)' }}>
-                            Accept
-                          </button>
-                          <button onClick={() => handleUpdateBookingStatus(b.id, 'cancelled')}
-                            className="px-3 py-1.5 rounded-lg text-xs font-medium"
-                            style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.18)' }}>
-                            Decline
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  {b.notes && <p className="text-xs mt-2 italic" style={{ color: textMuted }}>{b.notes}</p>}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {otherReview.length > 0 && (
-          <div className="rounded-2xl p-5" style={{ background: cardBg, border: `1px solid ${cardBorder}` }}>
-            <h3 className="font-semibold mb-4 text-sm" style={{ color: textPrimary }}>Cancelled bookings</h3>
-            <div className="space-y-3">
-              {otherReview.map((b) => (
-                <div key={b.id} className="rounded-xl p-4" style={{ background: inputBg, border: `1px solid ${inputBorder}` }}>
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0">
-                      <p className="font-semibold truncate" style={{ color: textPrimary }}>{b.service}</p>
-                      <p className="text-xs mt-1" style={{ color: textMuted }}>
-                        {new Date(b.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}{b.time ? ` · ${b.time}` : ''}
-                      </p>
-                      <p className="text-xs mt-1" style={{ color: textMuted }}>
-                        Booked by {b.userName ?? 'Unknown user'} {b.userEmail ? `· ${b.userEmail}` : ''}
-                      </p>
-                    </div>
-                    <StatusBadge status={b.status} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
+      <AdminPanelFull
+        isDark={isDark}
+        accessToken={accessToken}
+        consultancyRequests={consultancyRequests}
+        bookings={validBookings}
+        onStatusChange={handleConsultancyStatusChange}
+        onBookingStatusChange={handleUpdateBookingStatus}
+      />
     );
+  };
+
+
+
   };
 
   const CoursesPanel = () => (
@@ -994,6 +839,7 @@ export default function Dashboard() {
               {activeNav === 'courses'   && <CoursesPanel />}
               {activeNav === 'profile'   && <ProfilePanel />}
               {activeNav === 'admin'     && isAdmin && <AdminPanel />}
+
             </motion.div>
           </AnimatePresence>
         </div>

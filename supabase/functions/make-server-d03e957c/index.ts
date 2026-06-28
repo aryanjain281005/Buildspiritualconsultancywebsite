@@ -478,7 +478,7 @@ app.get("/make-server-d03e957c/resend-telegram", async (c) => {
     const sanitize = (str: string) => (str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     
     let sent = 0;
-    const reversed = [...(data || [])].reverse(); // Send oldest to newest
+    const reversed = [...(data || [])].reverse();
     for (const req of reversed) {
       const tgMessage = `🔔 <b>Missed Consultancy Request</b>\n\n<b>Name:</b> ${sanitize(req.full_name)}\n<b>Email:</b> ${sanitize(req.email)}\n<b>Phone:</b> ${sanitize(req.phone)}\n<b>Service:</b> ${sanitize(req.service)}\n<b>Time:</b> ${sanitize(req.preferred_time)}\n<b>Message:</b> ${sanitize(req.message)}`;
       const tgRes = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
@@ -488,7 +488,6 @@ app.get("/make-server-d03e957c/resend-telegram", async (c) => {
       });
       if (tgRes.ok) sent++;
       else console.error("TG Resend failed:", await tgRes.text());
-      // Sleep slightly to avoid rate limit
       await new Promise(r => setTimeout(r, 200));
     }
     
@@ -498,4 +497,427 @@ app.get("/make-server-d03e957c/resend-telegram", async (c) => {
   }
 });
 
+// ─── CONSULTANCY STATUS UPDATE ─────────────────────────────
+
+// PUT /consultancy/:id/status
+app.put("/make-server-d03e957c/consultancy/:id/status", async (c) => {
+  try {
+    const user = await getAuthUser(c.req.header("Authorization") ?? null);
+    if (!user || !isAdminUser(user)) return c.json({ error: "Forbidden" }, 403);
+
+    const id = c.req.param("id");
+    const { status } = await c.req.json();
+    if (!status || !["new", "in-progress", "completed", "cancelled"].includes(status)) {
+      return c.json({ error: "Invalid status. Must be: new, in-progress, completed, cancelled" }, 400);
+    }
+
+    const supabase = bookingsClient();
+    const { data, error } = await supabase
+      .from("consultancy_requests")
+      .update({ status })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json({ request: data });
+  } catch (err) {
+    return c.json({ error: `Error updating status: ${err}` }, 500);
+  }
+});
+
+// ─── GALLERY ───────────────────────────────────────────────
+
+// GET /gallery (public)
+app.get("/make-server-d03e957c/gallery", async (c) => {
+  try {
+    const supabase = bookingsClient();
+    const { data, error } = await supabase
+      .from("gallery_images")
+      .select("*")
+      .order("sort_order", { ascending: true });
+
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json({ images: data ?? [] });
+  } catch (err) {
+    return c.json({ error: `Error fetching gallery: ${err}` }, 500);
+  }
+});
+
+// POST /gallery (admin only)
+app.post("/make-server-d03e957c/gallery", async (c) => {
+  try {
+    const user = await getAuthUser(c.req.header("Authorization") ?? null);
+    if (!user || !isAdminUser(user)) return c.json({ error: "Forbidden" }, 403);
+
+    const { title, category, imageUrl } = await c.req.json();
+    if (!imageUrl) return c.json({ error: "imageUrl is required" }, 400);
+
+    const supabase = bookingsClient();
+    const { data, error } = await supabase
+      .from("gallery_images")
+      .insert({ title: title || "", category: category || "Practice", image_url: imageUrl, sort_order: 0 })
+      .select()
+      .single();
+
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json({ image: data });
+  } catch (err) {
+    return c.json({ error: `Error adding gallery image: ${err}` }, 500);
+  }
+});
+
+// DELETE /gallery/:id (admin only)
+app.delete("/make-server-d03e957c/gallery/:id", async (c) => {
+  try {
+    const user = await getAuthUser(c.req.header("Authorization") ?? null);
+    if (!user || !isAdminUser(user)) return c.json({ error: "Forbidden" }, 403);
+
+    const id = c.req.param("id");
+    const supabase = bookingsClient();
+    const { error } = await supabase.from("gallery_images").delete().eq("id", id);
+
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json({ success: true });
+  } catch (err) {
+    return c.json({ error: `Error deleting gallery image: ${err}` }, 500);
+  }
+});
+
+// ─── BLOG ──────────────────────────────────────────────────
+
+// GET /blog (public — published only)
+app.get("/make-server-d03e957c/blog", async (c) => {
+  try {
+    const supabase = bookingsClient();
+    const { data, error } = await supabase
+      .from("blog_posts")
+      .select("*")
+      .eq("published", true)
+      .order("created_at", { ascending: false });
+
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json({ posts: data ?? [] });
+  } catch (err) {
+    return c.json({ error: `Error fetching blog: ${err}` }, 500);
+  }
+});
+
+// GET /blog/all (admin — all posts)
+app.get("/make-server-d03e957c/blog/all", async (c) => {
+  try {
+    const user = await getAuthUser(c.req.header("Authorization") ?? null);
+    if (!user || !isAdminUser(user)) return c.json({ error: "Forbidden" }, 403);
+
+    const supabase = bookingsClient();
+    const { data, error } = await supabase
+      .from("blog_posts")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json({ posts: data ?? [] });
+  } catch (err) {
+    return c.json({ error: `Error fetching all blog posts: ${err}` }, 500);
+  }
+});
+
+// POST /blog (admin only)
+app.post("/make-server-d03e957c/blog", async (c) => {
+  try {
+    const user = await getAuthUser(c.req.header("Authorization") ?? null);
+    if (!user || !isAdminUser(user)) return c.json({ error: "Forbidden" }, 403);
+
+    const { title, excerpt, content, author, category, imageUrl, tags, readTime, published } = await c.req.json();
+    if (!title) return c.json({ error: "title is required" }, 400);
+
+    const supabase = bookingsClient();
+    const { data, error } = await supabase
+      .from("blog_posts")
+      .insert({
+        title,
+        excerpt: excerpt || "",
+        content: content || "",
+        author: author || "Rekha Bala",
+        category: category || "Akashic Reading",
+        image_url: imageUrl || "",
+        tags: tags || [],
+        read_time: readTime || "5 min read",
+        published: published ?? false,
+      })
+      .select()
+      .single();
+
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json({ post: data });
+  } catch (err) {
+    return c.json({ error: `Error creating blog post: ${err}` }, 500);
+  }
+});
+
+// PUT /blog/:id (admin only)
+app.put("/make-server-d03e957c/blog/:id", async (c) => {
+  try {
+    const user = await getAuthUser(c.req.header("Authorization") ?? null);
+    if (!user || !isAdminUser(user)) return c.json({ error: "Forbidden" }, 403);
+
+    const id = c.req.param("id");
+    const body = await c.req.json();
+    const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    if (body.title !== undefined) updates.title = body.title;
+    if (body.excerpt !== undefined) updates.excerpt = body.excerpt;
+    if (body.content !== undefined) updates.content = body.content;
+    if (body.author !== undefined) updates.author = body.author;
+    if (body.category !== undefined) updates.category = body.category;
+    if (body.imageUrl !== undefined) updates.image_url = body.imageUrl;
+    if (body.tags !== undefined) updates.tags = body.tags;
+    if (body.readTime !== undefined) updates.read_time = body.readTime;
+    if (body.published !== undefined) updates.published = body.published;
+
+    const supabase = bookingsClient();
+    const { data, error } = await supabase.from("blog_posts").update(updates).eq("id", id).select().single();
+
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json({ post: data });
+  } catch (err) {
+    return c.json({ error: `Error updating blog post: ${err}` }, 500);
+  }
+});
+
+// DELETE /blog/:id (admin only)
+app.delete("/make-server-d03e957c/blog/:id", async (c) => {
+  try {
+    const user = await getAuthUser(c.req.header("Authorization") ?? null);
+    if (!user || !isAdminUser(user)) return c.json({ error: "Forbidden" }, 403);
+
+    const id = c.req.param("id");
+    const supabase = bookingsClient();
+    const { error } = await supabase.from("blog_posts").delete().eq("id", id);
+
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json({ success: true });
+  } catch (err) {
+    return c.json({ error: `Error deleting blog post: ${err}` }, 500);
+  }
+});
+
+// ─── REVIEWS ───────────────────────────────────────────────
+
+// GET /reviews (public)
+app.get("/make-server-d03e957c/reviews", async (c) => {
+  try {
+    const supabase = bookingsClient();
+    const { data, error } = await supabase
+      .from("reviews")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json({ reviews: data ?? [] });
+  } catch (err) {
+    return c.json({ error: `Error fetching reviews: ${err}` }, 500);
+  }
+});
+
+// POST /reviews (admin only)
+app.post("/make-server-d03e957c/reviews", async (c) => {
+  try {
+    const user = await getAuthUser(c.req.header("Authorization") ?? null);
+    if (!user || !isAdminUser(user)) return c.json({ error: "Forbidden" }, 403);
+
+    const { name, role, location, rating, review, fullReview, service, color } = await c.req.json();
+    if (!name || !review) return c.json({ error: "name and review are required" }, 400);
+
+    const supabase = bookingsClient();
+    const { data, error } = await supabase
+      .from("reviews")
+      .insert({
+        name,
+        role: role || "Client",
+        location: location || "",
+        rating: rating || 5,
+        review,
+        full_review: fullReview || review,
+        service: service || "",
+        color: color || "from-purple-400 to-violet-600",
+      })
+      .select()
+      .single();
+
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json({ review: data });
+  } catch (err) {
+    return c.json({ error: `Error creating review: ${err}` }, 500);
+  }
+});
+
+// PUT /reviews/:id (admin only)
+app.put("/make-server-d03e957c/reviews/:id", async (c) => {
+  try {
+    const user = await getAuthUser(c.req.header("Authorization") ?? null);
+    if (!user || !isAdminUser(user)) return c.json({ error: "Forbidden" }, 403);
+
+    const id = c.req.param("id");
+    const body = await c.req.json();
+    const updates: Record<string, unknown> = {};
+    if (body.name !== undefined) updates.name = body.name;
+    if (body.role !== undefined) updates.role = body.role;
+    if (body.location !== undefined) updates.location = body.location;
+    if (body.rating !== undefined) updates.rating = body.rating;
+    if (body.review !== undefined) updates.review = body.review;
+    if (body.fullReview !== undefined) updates.full_review = body.fullReview;
+    if (body.service !== undefined) updates.service = body.service;
+    if (body.color !== undefined) updates.color = body.color;
+
+    const supabase = bookingsClient();
+    const { data, error } = await supabase.from("reviews").update(updates).eq("id", id).select().single();
+
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json({ review: data });
+  } catch (err) {
+    return c.json({ error: `Error updating review: ${err}` }, 500);
+  }
+});
+
+// DELETE /reviews/:id (admin only)
+app.delete("/make-server-d03e957c/reviews/:id", async (c) => {
+  try {
+    const user = await getAuthUser(c.req.header("Authorization") ?? null);
+    if (!user || !isAdminUser(user)) return c.json({ error: "Forbidden" }, 403);
+
+    const id = c.req.param("id");
+    const supabase = bookingsClient();
+    const { error } = await supabase.from("reviews").delete().eq("id", id);
+
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json({ success: true });
+  } catch (err) {
+    return c.json({ error: `Error deleting review: ${err}` }, 500);
+  }
+});
+
+// ─── COURSES (ADMIN MANAGED) ───────────────────────────────
+
+// GET /courses/all (admin — all courses)
+app.get("/make-server-d03e957c/courses/all", async (c) => {
+  try {
+    const user = await getAuthUser(c.req.header("Authorization") ?? null);
+    if (!user || !isAdminUser(user)) return c.json({ error: "Forbidden" }, 403);
+
+    const supabase = bookingsClient();
+    const { data, error } = await supabase
+      .from("courses")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json({ courses: data ?? [] });
+  } catch (err) {
+    return c.json({ error: `Error fetching all courses: ${err}` }, 500);
+  }
+});
+
+// GET /courses/published (public)
+app.get("/make-server-d03e957c/courses/published", async (c) => {
+  try {
+    const supabase = bookingsClient();
+    const { data, error } = await supabase
+      .from("courses")
+      .select("*")
+      .eq("published", true)
+      .order("created_at", { ascending: false });
+
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json({ courses: data ?? [] });
+  } catch (err) {
+    return c.json({ error: `Error fetching published courses: ${err}` }, 500);
+  }
+});
+
+// POST /courses (admin only)
+app.post("/make-server-d03e957c/courses", async (c) => {
+  try {
+    const user = await getAuthUser(c.req.header("Authorization") ?? null);
+    if (!user || !isAdminUser(user)) return c.json({ error: "Forbidden" }, 403);
+
+    const { title, description, duration, level, price, originalPrice, emoji, category, features, popular, color, published } = await c.req.json();
+    if (!title) return c.json({ error: "title is required" }, 400);
+
+    const supabase = bookingsClient();
+    const { data, error } = await supabase
+      .from("courses")
+      .insert({
+        title,
+        description: description || "",
+        duration: duration || "",
+        level: level || "All Levels",
+        price: price || "",
+        original_price: originalPrice || "",
+        emoji: emoji || "✨",
+        category: category || "",
+        features: features || [],
+        popular: popular ?? false,
+        color: color || "from-violet-500 to-purple-600",
+        published: published ?? false,
+      })
+      .select()
+      .single();
+
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json({ course: data });
+  } catch (err) {
+    return c.json({ error: `Error creating course: ${err}` }, 500);
+  }
+});
+
+// PUT /courses/:id (admin only)
+app.put("/make-server-d03e957c/courses/:id", async (c) => {
+  try {
+    const user = await getAuthUser(c.req.header("Authorization") ?? null);
+    if (!user || !isAdminUser(user)) return c.json({ error: "Forbidden" }, 403);
+
+    const id = c.req.param("id");
+    const body = await c.req.json();
+    const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    if (body.title !== undefined) updates.title = body.title;
+    if (body.description !== undefined) updates.description = body.description;
+    if (body.duration !== undefined) updates.duration = body.duration;
+    if (body.level !== undefined) updates.level = body.level;
+    if (body.price !== undefined) updates.price = body.price;
+    if (body.originalPrice !== undefined) updates.original_price = body.originalPrice;
+    if (body.emoji !== undefined) updates.emoji = body.emoji;
+    if (body.category !== undefined) updates.category = body.category;
+    if (body.features !== undefined) updates.features = body.features;
+    if (body.popular !== undefined) updates.popular = body.popular;
+    if (body.color !== undefined) updates.color = body.color;
+    if (body.published !== undefined) updates.published = body.published;
+
+    const supabase = bookingsClient();
+    const { data, error } = await supabase.from("courses").update(updates).eq("id", id).select().single();
+
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json({ course: data });
+  } catch (err) {
+    return c.json({ error: `Error updating course: ${err}` }, 500);
+  }
+});
+
+// DELETE /courses/:id (admin only)
+app.delete("/make-server-d03e957c/courses/:id", async (c) => {
+  try {
+    const user = await getAuthUser(c.req.header("Authorization") ?? null);
+    if (!user || !isAdminUser(user)) return c.json({ error: "Forbidden" }, 403);
+
+    const id = c.req.param("id");
+    const supabase = bookingsClient();
+    const { error } = await supabase.from("courses").delete().eq("id", id);
+
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json({ success: true });
+  } catch (err) {
+    return c.json({ error: `Error deleting course: ${err}` }, 500);
+  }
+});
+
 Deno.serve(app.fetch);
+

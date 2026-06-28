@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Star, Quote, ChevronLeft, ChevronRight } from 'lucide-react';
 import { testimonials } from '../../data/testimonials';
@@ -26,10 +26,37 @@ export default function Testimonials() {
   const { t } = useLanguage();
   const [activeIndex, setActiveIndex] = useState(0);
   const [direction, setDirection] = useState(1);
+  const [dbReviews, setDbReviews] = useState<any[]>([]);
 
-  const next = () => { setDirection(1); setActiveIndex(i => (i + 1) % testimonials.length); };
-  const prev = () => { setDirection(-1); setActiveIndex(i => (i - 1 + testimonials.length) % testimonials.length); };
-  const featured = testimonials[activeIndex];
+  useEffect(() => {
+    fetch('https://xvdoutqezjsuogankqna.supabase.co/functions/v1/make-server-d03e957c/reviews')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.reviews && data.reviews.length > 0) {
+          const formatted = data.reviews.map((r: any) => ({
+            id: r.id,
+            name: r.name,
+            role: r.role || 'Client',
+            location: r.location || 'Global',
+            rating: r.rating || 5,
+            review: r.review,
+            fullReview: r.full_review || r.review,
+            service: r.service || 'Spiritual Session',
+            initials: (r.name || 'Anonymous').substring(0, 2).toUpperCase(),
+            color: r.color || 'from-[#7C3AED] to-[#EC4899]',
+            date: new Date(r.created_at).toLocaleDateString()
+          }));
+          setDbReviews(formatted);
+        }
+      })
+      .catch(err => console.error("Error fetching reviews:", err));
+  }, []);
+
+  const displayItems = dbReviews.length > 0 ? dbReviews : testimonials;
+
+  const next = () => { setDirection(1); setActiveIndex(i => (i + 1) % displayItems.length); };
+  const prev = () => { setDirection(-1); setActiveIndex(i => (i - 1 + displayItems.length) % displayItems.length); };
+  const featured = displayItems[activeIndex] || displayItems[0];
 
   return (
     <section id="testimonials" className="py-24 md:py-32 bg-white dark:bg-[#060312] relative overflow-hidden">
@@ -94,7 +121,7 @@ export default function Testimonials() {
               <ChevronLeft className="w-5 h-5" />
             </motion.button>
             <div className="flex gap-2">
-              {testimonials.map((_, i) => (
+              {displayItems.map((_, i) => (
                 <button key={i} onClick={() => { setDirection(i > activeIndex ? 1 : -1); setActiveIndex(i); }}
                   className="rounded-full transition-all duration-300"
                   style={{ width: i === activeIndex ? '24px' : '8px', height: '8px', background: i === activeIndex ? 'linear-gradient(90deg, #7C3AED, #F59E0B)' : 'rgba(124,58,237,0.25)' }} />
@@ -109,7 +136,7 @@ export default function Testimonials() {
 
         {/* All Testimonials Grid */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {testimonials.map((t_item, i) => (
+          {displayItems.map((t_item, i) => (
             <motion.div key={t_item.id} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: i * 0.08 }}
               whileHover={{ y: -6, boxShadow: '0 20px 40px rgba(124,58,237,0.12)' }}
               className={`rounded-2xl p-6 border cursor-pointer transition-all duration-300 ${i === activeIndex ? 'border-[#7C3AED]/40 dark:border-[#7C3AED]/40 shadow-lg' : 'border-purple-50 dark:border-purple-900/20'} bg-white dark:bg-[#0E0825]`}

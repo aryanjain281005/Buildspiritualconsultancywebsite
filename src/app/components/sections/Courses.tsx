@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Clock, BarChart3, CheckCircle2, Flame, ArrowRight } from 'lucide-react';
 import { courses } from '../../data/courses';
@@ -18,8 +19,41 @@ export default function Courses() {
     if (el) el.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Merge base course data (price, color, emoji, popular) with translated overrides
-  const localizedCourses = courses.map(course => {
+  const [dbCourses, setDbCourses] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch('https://xvdoutqezjsuogankqna.supabase.co/functions/v1/make-server-d03e957c/courses/all')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.courses && data.courses.length > 0) {
+          const published = data.courses.filter((c: any) => c.published);
+          const formatted = published.map((c: any) => ({
+            id: c.id,
+            title: c.title,
+            description: c.description,
+            duration: c.duration || '4 Weeks',
+            level: c.level || 'All Levels',
+            price: c.price,
+            originalPrice: c.original_price,
+            emoji: c.emoji || '✨',
+            category: c.category || 'Course',
+            features: c.features || [],
+            popular: c.popular || false,
+            color: c.color || 'from-[#7C3AED] to-[#3B82F6]'
+          }));
+          if (formatted.length > 0) {
+            setDbCourses(formatted);
+          }
+        }
+      })
+      .catch(err => console.error("Error fetching courses:", err));
+  }, []);
+
+  const baseCourses = dbCourses.length > 0 ? dbCourses : courses;
+  
+  // Merge base course data with translated overrides if using static
+  const localizedCourses = baseCourses.map(course => {
+    if (dbCourses.length > 0) return course; // DB courses don't use local translations yet
     const override = t.courses.coursesData.find(c => c.id === course.id);
     return { ...course, ...override };
   });
@@ -70,7 +104,7 @@ export default function Courses() {
                     {course.emoji}
                   </div>
                   <div>
-                    <span className={`text-xs font-medium px-2.5 py-1 rounded-full border ${levelColorMap[courses.find(c => c.id === course.id)?.level || 'Beginner']}`}>
+                    <span className={`text-xs font-medium px-2.5 py-1 rounded-full border ${levelColorMap[course.level || 'Beginner']}`}>
                       {course.level}
                     </span>
                     <div className="text-[#6B7280] dark:text-[#9CA3AF] text-xs mt-1">{course.category}</div>
@@ -99,10 +133,10 @@ export default function Courses() {
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-2xl font-bold text-[#1E1048] dark:text-[#EDE9FF]" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
-                      {courses.find(c => c.id === course.id)?.price}
+                      {course.price}
                     </div>
-                    {courses.find(c => c.id === course.id)?.originalPrice && (
-                      <div className="text-[#9CA3AF] text-xs line-through">{courses.find(c => c.id === course.id)?.originalPrice}</div>
+                    {course.originalPrice && (
+                      <div className="text-[#9CA3AF] text-xs line-through">{course.originalPrice}</div>
                     )}
                   </div>
                   <motion.button whileHover={{ scale: 1.05, boxShadow: '0 8px 25px rgba(124,58,237,0.4)' }} whileTap={{ scale: 0.97 }} onClick={scrollToBooking}
