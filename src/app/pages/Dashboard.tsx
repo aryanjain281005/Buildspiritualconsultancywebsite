@@ -673,8 +673,6 @@ export default function Dashboard() {
 
 
 
-  };
-
   const CoursesPanel = () => (
     <div>
       <h2 className="text-lg font-bold mb-5" style={{ color: textPrimary }}>My Courses</h2>
