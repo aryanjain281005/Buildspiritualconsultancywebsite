@@ -32,6 +32,8 @@ interface ConsultancyRequest {
   email: string;
   phone?: string;
   service?: string;
+  country?: string;
+  preferredDay?: string;
   preferredTime?: string;
   message?: string;
   status: string;
@@ -279,6 +281,8 @@ export default function Dashboard() {
             email: cr.email,
             phone: cr.phone,
             service: cr.service,
+            country: cr.country,
+            preferredDay: cr.preferredDay,
             preferredTime: cr.preferredTime,
             message: cr.message,
             status: cr.status ?? 'pending',

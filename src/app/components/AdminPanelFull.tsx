@@ -228,6 +228,11 @@ function RequestsTab({ isDark, s, consultancyRequests, bookings, onStatusChange,
                     <p className="font-semibold text-sm" style={{ color: s.textPrimary }}>{cr.fullName}</p>
                     <p className="text-[11px] mt-0.5" style={{ color: s.textMuted }}>{cr.email} · {cr.phone || 'N/A'}</p>
                     {cr.service && <p className="text-[11px] mt-0.5" style={{ color: s.textMuted }}>Service: {cr.service}</p>}
+                    <div className="flex gap-2 mt-0.5">
+                      {cr.country && <span className="text-[10px] px-1.5 py-0.5 rounded-md" style={{ background: 'rgba(124,58,237,0.1)', color: '#A78BFA' }}>{cr.country}</span>}
+                      {cr.preferredDay && <span className="text-[10px] px-1.5 py-0.5 rounded-md" style={{ background: 'rgba(52,211,153,0.1)', color: '#34D399' }}>{cr.preferredDay}</span>}
+                      {cr.preferredTime && <span className="text-[10px] px-1.5 py-0.5 rounded-md" style={{ background: 'rgba(96,165,250,0.1)', color: '#60A5FA' }}>{cr.preferredTime}</span>}
+                    </div>
                     {cr.message && <p className="text-[11px] mt-1 italic" style={{ color: s.textMuted }}>"{cr.message.slice(0, 100)}{cr.message.length > 100 ? '…' : ''}"</p>}
                     <p className="text-[10px] mt-1" style={{ color: s.textMuted }}>
                       {new Date(cr.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
@@ -258,6 +263,10 @@ function RequestsTab({ isDark, s, consultancyRequests, bookings, onStatusChange,
                 <div>
                   <p className="font-semibold text-sm" style={{ color: s.textPrimary }}>{b.userName}</p>
                   <p className="text-[11px]" style={{ color: s.textMuted }}>{b.service} · {b.date} {b.time}</p>
+                  <div className="flex gap-2 mt-1">
+                    {b.country && <span className="text-[10px] px-1.5 py-0.5 rounded-md" style={{ background: 'rgba(124,58,237,0.1)', color: '#A78BFA' }}>{b.country}</span>}
+                    {b.preferredDay && <span className="text-[10px] px-1.5 py-0.5 rounded-md" style={{ background: 'rgba(52,211,153,0.1)', color: '#34D399' }}>{b.preferredDay}</span>}
+                  </div>
                 </div>
                 <StatusDropdown current={b.status} options={['pending', 'confirmed', 'completed', 'cancelled']}
                   onSelect={(status) => onBookingStatusChange(b.id, status)} />

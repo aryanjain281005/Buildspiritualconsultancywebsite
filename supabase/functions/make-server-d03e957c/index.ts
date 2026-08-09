@@ -404,7 +404,7 @@ app.get("/make-server-d03e957c/consultancy", async (c) => {
     const supabase = bookingsClient();
     const { data, error } = await supabase
       .from("consultancy_requests")
-      .select("id, full_name, email, phone, service, preferred_time, message, status, created_at")
+      .select("id, full_name, email, phone, service, preferred_time, message, status, created_at, country, preferred_day")
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -424,6 +424,8 @@ app.get("/make-server-d03e957c/consultancy", async (c) => {
       service: cr.service,
       preferredTime: cr.preferred_time,
       message: cr.message,
+      country: cr.country,
+      preferredDay: cr.preferred_day,
       status: cr.status ?? "pending",
       createdAt: cr.created_at,
     }));
