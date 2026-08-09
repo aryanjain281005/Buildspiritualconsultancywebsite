@@ -437,7 +437,7 @@ app.get("/make-server-d03e957c/consultancy", async (c) => {
 // POST /consultancy
 app.post("/make-server-d03e957c/consultancy", async (c) => {
   try {
-    const { fullName, email, phone, service, preferredTime, message, country } = await c.req.json();
+    const { fullName, email, phone, service, preferredTime, message, country, preferredDay } = await c.req.json();
     if (!fullName || !email) {
       return c.json({ error: "fullName and email are required." }, 400);
     }
@@ -451,6 +451,7 @@ app.post("/make-server-d03e957c/consultancy", async (c) => {
       preferred_time: preferredTime || "",
       message: message || "",
       country: country || "",
+      preferred_day: preferredDay || "",
       status: "new",
     }).select().single();
 
@@ -464,7 +465,7 @@ app.post("/make-server-d03e957c/consultancy", async (c) => {
     const chatId = "-1004474709313";
     if (botToken && chatId) {
       const sanitize = (str: string) => str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-      const tgMessage = `🔔 <b>New Consultancy Request</b>\n\n<b>Name:</b> ${sanitize(fullName)}\n<b>Email:</b> ${sanitize(email)}\n<b>Phone:</b> ${sanitize(phone || "N/A")}\n<b>Service:</b> ${sanitize(service || "N/A")}\n<b>Time:</b> ${sanitize(preferredTime || "N/A")}\n<b>Country:</b> ${sanitize(country || "N/A")}\n<b>Message:</b> ${sanitize(message || "N/A")}`;
+      const tgMessage = `🔔 <b>New Consultancy Request</b>\n\n<b>Name:</b> ${sanitize(fullName)}\n<b>Email:</b> ${sanitize(email)}\n<b>Phone:</b> ${sanitize(phone || "N/A")}\n<b>Service:</b> ${sanitize(service || "N/A")}\n<b>Country:</b> ${sanitize(country || "N/A")}\n<b>Preferred Day:</b> ${sanitize(preferredDay || "N/A")}\n<b>Time:</b> ${sanitize(preferredTime || "N/A")}\n<b>Message:</b> ${sanitize(message || "N/A")}`;
       
       try {
         const tgRes = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {

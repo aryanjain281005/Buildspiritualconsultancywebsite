@@ -15,6 +15,7 @@ interface FormData {
   phone: string;
   service: string;
   country: string;
+  preferredDay: string;
   preferredTime: string;
   message: string;
 }
@@ -189,7 +190,7 @@ export default function Consultancy() {
                     </div>
                   </div>
 
-                  <div className="grid sm:grid-cols-2 gap-5">
+                  <div className="grid sm:grid-cols-3 gap-5">
                     <div>
                       <label className="text-purple-200/80 text-sm mb-1.5 block">Country</label>
                       <select {...register('country')}
@@ -197,6 +198,17 @@ export default function Consultancy() {
                         style={{ background: 'rgba(30,16,72,0.8)' }}>
                         {['India', 'United States', 'United Kingdom', 'Canada', 'Australia', 'Other'].map(c => (
                           <option key={c} value={c} style={{ background: '#1E1048' }}>{c}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-purple-200/80 text-sm mb-1.5 block">Preferred Day</label>
+                      <select {...register('preferredDay')}
+                        className="w-full px-4 py-3 rounded-xl border border-white/15 text-white text-sm focus:outline-none appearance-none"
+                        style={{ background: 'rgba(30,16,72,0.8)' }}>
+                        <option value="" style={{ background: '#1E1048' }}>Select Day</option>
+                        {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(d => (
+                          <option key={d} value={d} style={{ background: '#1E1048' }}>{d}</option>
                         ))}
                       </select>
                     </div>
