@@ -141,14 +141,21 @@ export function useAuth() {
 // ── API helper ─────────────────────────────────────────────
 export async function apiFetch(path: string, accessToken: string, options: RequestInit = {}) {
   const url = `${SERVER_URL}${path}`;
+  
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options.headers as Record<string, string> ?? {}),
+  };
+  
+  if (accessToken) {
+    headers['Authorization'] = `Bearer ${accessToken}`;
+  }
+
   const res = await fetch(url, {
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
-      ...(options.headers ?? {}),
-    },
+    headers,
   });
+  
   const data = await res.json();
   if (!res.ok) throw new Error(data.error ?? `Request failed: ${res.status}`);
   return data;
