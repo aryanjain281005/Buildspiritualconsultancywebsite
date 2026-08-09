@@ -158,7 +158,7 @@ app.post("/make-server-d03e957c/bookings", async (c) => {
     if (!user) return c.json({ error: "Unauthorized" }, 401);
     const supabase = bookingsClient();
 
-    const { service, date, time, notes } = await c.req.json();
+    const { service, date, time, notes, country, preferredDay } = await c.req.json();
     if (!service || !date) {
       return c.json({ error: "service and date are required." }, 400);
     }
@@ -173,6 +173,8 @@ app.post("/make-server-d03e957c/bookings", async (c) => {
       date,
       time: time ?? "",
       notes: notes ?? "",
+      country: country ?? "",
+      preferredDay: preferredDay ?? "",
       status: "pending",
       createdAt: new Date().toISOString(),
     };
@@ -186,11 +188,40 @@ app.post("/make-server-d03e957c/bookings", async (c) => {
       booking_date: booking.date,
       booking_time: booking.time,
       notes: booking.notes,
+      country: booking.country,
+      preferred_day: booking.preferredDay,
       status: booking.status,
       created_at: booking.createdAt,
       updated_at: booking.createdAt,
     });
     if (error) return c.json({ error: error.message }, 500);
+
+    // Attempt to send Telegram message
+    const botToken = "8998508406:AAF2h2xdYJNiAw34ns7KwGOhfcw8t9VODoY";
+    const chatId = "-1004474709313";
+    if (botToken && chatId) {
+      const sanitize = (str: string) => str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      const tgMessage = `🔔 <b>New Booking Request</b>\n\n<b>Name:</b> ${sanitize(booking.userName)}\n<b>Email:</b> ${sanitize(booking.userEmail)}\n<b>Service:</b> ${sanitize(booking.service)}\n<b>Date:</b> ${sanitize(booking.date)}\n<b>Time:</b> ${sanitize(booking.time || "N/A")}\n<b>Country:</b> ${sanitize(booking.country || "N/A")}\n<b>Preferred Day:</b> ${sanitize(booking.preferredDay || "N/A")}\n<b>Notes:</b> ${sanitize(booking.notes || "N/A")}`;
+      
+      try {
+        const tgRes = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text: tgMessage,
+            parse_mode: "HTML",
+          }),
+        });
+        if (!tgRes.ok) {
+          const text = await tgRes.text();
+          console.error("Telegram failed:", tgRes.status, text);
+        }
+      } catch (tgErr) {
+        console.error("Telegram network error:", tgErr);
+        // Do not fail the request if Telegram fails
+      }
+    }
 
     return c.json({ booking });
   } catch (err) {
@@ -406,7 +437,7 @@ app.get("/make-server-d03e957c/consultancy", async (c) => {
 // POST /consultancy
 app.post("/make-server-d03e957c/consultancy", async (c) => {
   try {
-    const { fullName, email, phone, service, preferredTime, message } = await c.req.json();
+    const { fullName, email, phone, service, preferredTime, message, country } = await c.req.json();
     if (!fullName || !email) {
       return c.json({ error: "fullName and email are required." }, 400);
     }
@@ -419,6 +450,7 @@ app.post("/make-server-d03e957c/consultancy", async (c) => {
       service: service || "",
       preferred_time: preferredTime || "",
       message: message || "",
+      country: country || "",
       status: "new",
     }).select().single();
 
@@ -432,7 +464,7 @@ app.post("/make-server-d03e957c/consultancy", async (c) => {
     const chatId = "-1004474709313";
     if (botToken && chatId) {
       const sanitize = (str: string) => str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-      const tgMessage = `🔔 <b>New Consultancy Request</b>\n\n<b>Name:</b> ${sanitize(fullName)}\n<b>Email:</b> ${sanitize(email)}\n<b>Phone:</b> ${sanitize(phone || "N/A")}\n<b>Service:</b> ${sanitize(service || "N/A")}\n<b>Time:</b> ${sanitize(preferredTime || "N/A")}\n<b>Message:</b> ${sanitize(message || "N/A")}`;
+      const tgMessage = `🔔 <b>New Consultancy Request</b>\n\n<b>Name:</b> ${sanitize(fullName)}\n<b>Email:</b> ${sanitize(email)}\n<b>Phone:</b> ${sanitize(phone || "N/A")}\n<b>Service:</b> ${sanitize(service || "N/A")}\n<b>Time:</b> ${sanitize(preferredTime || "N/A")}\n<b>Country:</b> ${sanitize(country || "N/A")}\n<b>Message:</b> ${sanitize(message || "N/A")}`;
       
       try {
         const tgRes = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {

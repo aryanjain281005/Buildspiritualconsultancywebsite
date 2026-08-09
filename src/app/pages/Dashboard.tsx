@@ -20,6 +20,8 @@ interface Booking {
   date: string;
   time: string;
   notes: string;
+  country?: string;
+  preferredDay?: string;
   status: 'pending' | 'confirmed' | 'cancelled';
   createdAt: string;
 }
@@ -88,28 +90,43 @@ function StatusBadge({ status }: { status: string }) {
 // ── New Booking Modal ────────────────────────────────────────
 function NewBookingModal({
   isDark, onClose, onSave,
-}: { isDark: boolean; onClose: () => void; onSave: (b: { service: string; date: string; time: string; notes: string }) => void }) {
+}: { isDark: boolean; onClose: () => void; onSave: (b: { service: string; date: string; time: string; notes: string; country: string; preferredDay: string }) => void }) {
   const [service, setService] = useState(SERVICES[0]);
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [notes, setNotes] = useState('');
+  const [country, setCountry] = useState('India');
+  const [preferredDay, setPreferredDay] = useState('Monday');
+
+  const COUNTRIES = ['India', 'United States', 'United Kingdom', 'Canada', 'Australia', 'Other'];
+  const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
   const inputBg = isDark ? 'rgba(124,58,237,0.07)' : 'rgba(124,58,237,0.04)';
   const inputBorder = isDark ? 'rgba(124,58,237,0.22)' : 'rgba(124,58,237,0.15)';
   const textPrimary = isDark ? '#EDE9FF' : '#1E1048';
   const textMuted = isDark ? 'rgba(237,233,255,0.5)' : 'rgba(30,16,72,0.45)';
 
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const d = new Date(e.target.value);
+    if (d.getDay() === 0) {
+      alert('Sundays are not available for booking.');
+      setDate('');
+    } else {
+      setDate(e.target.value);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+      className="fixed inset-0 z-[200] flex items-center justify-center p-4 overflow-y-auto"
       style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)' }}
       onClick={onClose}
     >
       <motion.div
         initial={{ scale: 0.92, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.92, y: 20 }}
         transition={{ type: 'spring', stiffness: 320, damping: 30 }}
-        className="w-full max-w-md rounded-2xl p-6 shadow-2xl"
+        className="w-full max-w-md rounded-2xl p-6 shadow-2xl my-8"
         style={{ background: isDark ? '#0D0821' : '#FFFFFF', border: `1px solid ${inputBorder}` }}
         onClick={e => e.stopPropagation()}
       >
@@ -132,8 +149,26 @@ function NewBookingModal({
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium mb-1.5" style={{ color: textMuted }}>Date</label>
-              <input type="date" value={date} onChange={e => setDate(e.target.value)} required
+              <label className="block text-xs font-medium mb-1.5" style={{ color: textMuted }}>Country</label>
+              <select value={country} onChange={e => setCountry(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
+                style={{ background: inputBg, border: `1px solid ${inputBorder}`, color: textPrimary }}>
+                {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1.5" style={{ color: textMuted }}>Preferred Day</label>
+              <select value={preferredDay} onChange={e => setPreferredDay(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
+                style={{ background: inputBg, border: `1px solid ${inputBorder}`, color: textPrimary }}>
+                {DAYS.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium mb-1.5" style={{ color: textMuted }}>Date (No Sundays)</label>
+              <input type="date" value={date} onChange={handleDateChange} required
                 min={new Date().toISOString().split('T')[0]}
                 className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
                 style={{ background: inputBg, border: `1px solid ${inputBorder}`, color: textPrimary }} />
@@ -156,7 +191,7 @@ function NewBookingModal({
           <motion.button
             whileHover={{ scale: 1.02, boxShadow: '0 4px 20px rgba(124,58,237,0.4)' }}
             whileTap={{ scale: 0.98 }}
-            onClick={() => { if (date) onSave({ service, date, time, notes }); }}
+            onClick={() => { if (date) onSave({ service, date, time, notes, country, preferredDay }); }}
             className="w-full py-3 rounded-xl text-white font-medium text-sm"
             style={{ background: 'linear-gradient(135deg, #7C3AED, #6D28D9)', opacity: date ? 1 : 0.5 }}>
             Request Booking
@@ -268,41 +303,34 @@ export default function Dashboard() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  const handleNewBooking = async (form: { service: string; date: string; time: string; notes: string }) => {
+  const handleNewBooking = async (form: { service: string; date: string; time: string; notes: string; country: string; preferredDay: string }) => {
     if (!accessToken) return;
     setBookingLoading(true);
     try {
-      const bookingId = `bk_${Date.now()}`;
-      const { data, error } = await supabase
-        .from('bookings')
-        .insert({
-          id: bookingId,
-          user_id: user?.id,
-          user_name: user?.name ?? 'User',
-          user_email: user?.email ?? '',
-          service: form.service,
-          booking_date: form.date,
-          booking_time: form.time ?? '',
-          notes: form.notes ?? '',
-          status: 'pending',
-        })
-        .select('id, user_id, user_name, user_email, service, booking_date, booking_time, notes, status, created_at, updated_at')
-        .single();
+      const res = await apiFetch('/bookings', accessToken, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form)
+      });
 
-      if (error) throw new Error(error.message);
+      if (res.error) throw new Error(res.error);
 
-      setBookings(prev => [{
-        id: data.id,
-        userId: data.user_id,
-        userName: data.user_name,
-        userEmail: data.user_email,
-        service: data.service,
-        date: data.booking_date,
-        time: data.booking_time,
-        notes: data.notes,
-        status: data.status,
-        createdAt: data.created_at,
-      }, ...prev].filter(Boolean));
+      if (res.booking) {
+        setBookings(prev => [{
+          id: res.booking.id,
+          userId: res.booking.userId,
+          userName: res.booking.userName,
+          userEmail: res.booking.userEmail,
+          service: res.booking.service,
+          date: res.booking.date,
+          time: res.booking.time,
+          notes: res.booking.notes,
+          country: res.booking.country,
+          preferredDay: res.booking.preferredDay,
+          status: res.booking.status,
+          createdAt: res.booking.createdAt,
+        }, ...prev].filter(Boolean));
+      }
       setShowNewBooking(false);
       setActiveNav('bookings');
     } catch (err: unknown) {
