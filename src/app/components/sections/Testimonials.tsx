@@ -44,7 +44,7 @@ export default function Testimonials() {
             service: r.service || 'Spiritual Session',
             initials: (r.name || 'Anonymous').substring(0, 2).toUpperCase(),
             color: r.color || 'from-[#7C3AED] to-[#EC4899]',
-            date: new Date(r.created_at).toLocaleDateString()
+            date: new Date(r.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' })
           }));
           setDbReviews(formatted);
         }

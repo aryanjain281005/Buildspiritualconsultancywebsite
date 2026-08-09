@@ -725,22 +725,26 @@ app.post("/make-server-d03e957c/reviews", async (c) => {
     const user = await getAuthUser(c.req.header("Authorization") ?? null);
     if (!user || !isAdminUser(user)) return c.json({ error: "Forbidden" }, 403);
 
-    const { name, role, location, rating, review, fullReview, service, color } = await c.req.json();
+    const { name, role, location, rating, review, fullReview, service, color, createdAt } = await c.req.json();
     if (!name || !review) return c.json({ error: "name and review are required" }, 400);
 
     const supabase = bookingsClient();
+    const insertData: Record<string, unknown> = {
+      name,
+      role: role || "Client",
+      location: location || "",
+      rating: rating || 5,
+      review,
+      full_review: fullReview || review,
+      service: service || "",
+      color: color || "from-purple-400 to-violet-600",
+    };
+    if (createdAt) {
+      insertData.created_at = new Date(createdAt).toISOString();
+    }
     const { data, error } = await supabase
       .from("reviews")
-      .insert({
-        name,
-        role: role || "Client",
-        location: location || "",
-        rating: rating || 5,
-        review,
-        full_review: fullReview || review,
-        service: service || "",
-        color: color || "from-purple-400 to-violet-600",
-      })
+      .insert(insertData)
       .select()
       .single();
 
@@ -768,6 +772,7 @@ app.put("/make-server-d03e957c/reviews/:id", async (c) => {
     if (body.fullReview !== undefined) updates.full_review = body.fullReview;
     if (body.service !== undefined) updates.service = body.service;
     if (body.color !== undefined) updates.color = body.color;
+    if (body.createdAt !== undefined) updates.created_at = new Date(body.createdAt).toISOString();
 
     const supabase = bookingsClient();
     const { data, error } = await supabase.from("reviews").update(updates).eq("id", id).select().single();

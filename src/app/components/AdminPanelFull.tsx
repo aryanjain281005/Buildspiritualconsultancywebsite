@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import {
   MessageSquare, Image, FileText, Star, BookOpen, Plus, Trash2, Edit3, X,
   CheckCircle2, Clock, XCircle, ChevronDown, Eye, EyeOff, Save, Loader2,
-  Upload, ExternalLink,
+  Upload, ExternalLink, Calendar,
 } from 'lucide-react';
 import { apiFetch } from '../context/AuthContext';
 
@@ -528,6 +528,7 @@ function ReviewsTab({ isDark, s, accessToken }: { isDark: boolean; s: ReturnType
   const [location, setLocation] = useState('');
   const [rating, setRating] = useState(5);
   const [reviewText, setReviewText] = useState('');
+  const [reviewDate, setReviewDate] = useState('');
   const [service, setService] = useState('');
 
   const fetchReviews = useCallback(async () => {
@@ -538,14 +539,14 @@ function ReviewsTab({ isDark, s, accessToken }: { isDark: boolean; s: ReturnType
 
   useEffect(() => { fetchReviews(); }, [fetchReviews]);
 
-  const resetForm = () => { setName(''); setRole('Client'); setLocation(''); setRating(5); setReviewText(''); setService(''); setShowForm(false); };
+  const resetForm = () => { setName(''); setRole('Client'); setLocation(''); setRating(5); setReviewText(''); setService(''); setReviewDate(''); setShowForm(false); };
 
   const saveReview = async () => {
     if (!name || !reviewText) return;
     setSaving(true);
     await apiFetch('/reviews', accessToken, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, role, location, rating, review: reviewText, fullReview: reviewText, service }),
+      body: JSON.stringify({ name, role, location, rating, review: reviewText, fullReview: reviewText, service, createdAt: reviewDate || undefined }),
     });
     setSaving(false); resetForm(); fetchReviews();
   };
@@ -580,13 +581,19 @@ function ReviewsTab({ isDark, s, accessToken }: { isDark: boolean; s: ReturnType
             <input value={service} onChange={e => setService(e.target.value)} placeholder="Service used"
               className="px-3 py-2 rounded-lg text-sm outline-none" style={{ background: s.inputBg, border: `1px solid ${s.inputBorder}`, color: s.textPrimary }} />
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="text-xs" style={{ color: s.textMuted }}>Rating:</span>
             {[1,2,3,4,5].map(n => (
               <button key={n} onClick={() => setRating(n)} className="text-lg">
                 {n <= rating ? '⭐' : '☆'}
               </button>
             ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 flex-shrink-0" style={{ color: s.textMuted }} />
+            <input type="date" value={reviewDate} onChange={e => setReviewDate(e.target.value)}
+              className="flex-1 px-3 py-2 rounded-lg text-sm outline-none" style={{ background: s.inputBg, border: `1px solid ${s.inputBorder}`, color: s.textPrimary }} />
+            <span className="text-[11px] flex-shrink-0" style={{ color: s.textMuted }}>Leave empty for today's date</span>
           </div>
           <textarea value={reviewText} onChange={e => setReviewText(e.target.value)} placeholder="Review text *" rows={3}
             className="w-full px-3 py-2 rounded-lg text-sm outline-none resize-none" style={{ background: s.inputBg, border: `1px solid ${s.inputBorder}`, color: s.textPrimary }} />
@@ -613,6 +620,7 @@ function ReviewsTab({ isDark, s, accessToken }: { isDark: boolean; s: ReturnType
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold text-sm" style={{ color: s.textPrimary }}>{r.name}</p>
                   <p className="text-[11px]" style={{ color: s.textMuted }}>{r.role} · {r.location} · {'⭐'.repeat(r.rating)}</p>
+                  <p className="text-[11px]" style={{ color: s.textMuted }}>{new Date(r.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
                   <p className="text-[11px] mt-1 italic" style={{ color: s.textMuted }}>"{r.review.slice(0, 120)}{r.review.length > 120 ? '…' : ''}"</p>
                 </div>
                 <button onClick={() => deleteReview(r.id)} className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
