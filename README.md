@@ -183,7 +183,10 @@ The site opens at `http://localhost:5173`. Bookings, login and the admin panel n
 
 I'm **Aryan Jain**, a B.Tech Computer Science student at IIIT Naya Raipur, interested in AI and building useful products. I design in Figma and build full-stack web and mobile apps.
 
-**Need a website for your business?** I take freelance projects: business and portfolio sites, booking systems, admin dashboards and automation like Telegram alerts. Reach out through my [GitHub profile](https://github.com/aryanjain281005).
+**Need a website for your business?** I take freelance projects: business and portfolio sites, booking systems, admin dashboards and automation like Telegram alerts. 
+Reach out through my -
+[GitHub profile](https://github.com/aryanjain281005) and 
+[linkdin](https://www.linkedin.com/in/aryan-jain-256465382/).
 
 ---
 
@@ -192,5 +195,7 @@ I'm **Aryan Jain**, a B.Tech Computer Science student at IIIT Naya Raipur, inter
 Built with care for **Vyana Soul** · Live at **[vyanasoul.com](https://vyanasoul.com)**
 
 <sub>Uses components from <a href="https://ui.shadcn.com/">shadcn/ui</a> (MIT) and photos from <a href="https://unsplash.com">Unsplash</a>. See <a href="ATTRIBUTIONS.md">ATTRIBUTIONS.md</a>.</sub>
+
+
 
 </div>
