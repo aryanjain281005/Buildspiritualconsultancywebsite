@@ -24,7 +24,7 @@
 
 ## About this project
 
-VyanaSoul is my **first freelance project**. The client, Rekha Bala, is a certified Akashic Reader, Pranic Healer and Lama Fera Healer. She needed one place online where people could learn about her work, trust her, and book a session without endless back-and-forth on WhatsApp.
+VyanaSoul is my **first freelance project**. The client, Rekha Bala, is an Akashic Reader, Pranic Healer and Lama Fera Healer. She needed one place online where people could learn about her work, trust her, and book a session without endless back-and-forth on WhatsApp.
 
 I took the project from the first conversation to a live product: understanding what the business needed, designing the site, building the frontend and backend, connecting a database and login, adding a Telegram alert system for the owner, and deploying it at **[vyanasoul.com](https://vyanasoul.com)**. The site is used by real clients, not built as a demo or college assignment.
 

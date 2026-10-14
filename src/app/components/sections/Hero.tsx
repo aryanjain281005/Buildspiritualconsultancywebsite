@@ -99,7 +99,7 @@ export default function Hero() {
                 fontFamily: "'Cormorant Garamond', serif",
                 fontSize: '1.15em',
               }}>Rekha Bala</span>,{' '}
-              your certified Akashic Reader, Lama Fera Healer, and Pranic Healer. Through personalized readings, and expert consultancy, Rekha guides you to release old blocks, align with your true purpose, and step into a life of profound clarity and healing.
+              your Akashic Reader, Lama Fera Healer, and Pranic Healer. Through personalized readings, and expert consultancy, Rekha guides you to release old blocks, align with your true purpose, and step into a life of profound clarity and healing.
             </motion.p>
 
             {/* CTA Buttons */}
@@ -157,7 +157,7 @@ export default function Hero() {
                 }}>
                 <ImageWithFallback
                   src={rekhaBalaPhoto}
-                  alt="Rekha Bala – Certified Akashic Reader & Founder of Vyana Soul"
+                  alt="Rekha Bala – Akashic Reader & Founder of Vyana Soul"
                   className="w-full h-full object-cover object-top"
                 />
                 {/* Bottom name overlay */}
@@ -168,7 +168,7 @@ export default function Hero() {
                     Rekha Bala
                   </p>
                   <p className="text-purple-300/90 text-xs tracking-wider uppercase mt-0.5">
-                    Certified Akashic Reader, Pranic Healer & Lama Fera Healer
+                    Akashic Reader, Pranic Healer & Lama Fera Healer
                   </p>
                 </div>
               </div>

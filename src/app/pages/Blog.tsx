@@ -63,7 +63,7 @@ function FullPost({ post, onClose }: { post: any; onClose: () => void }) {
             style={{ background: 'linear-gradient(135deg, #7C3AED, #EC4899)' }}>✦</div>
           <div>
             <p className="text-[#1E1048] dark:text-[#EDE9FF] text-sm font-semibold">{post.author || 'Rekha Bala'}</p>
-            <p className="text-[#9CA3AF] text-xs">Certified Akashic Reader & Healer</p>
+            <p className="text-[#9CA3AF] text-xs">Akashic Reader & Healer</p>
           </div>
         </motion.div>
 

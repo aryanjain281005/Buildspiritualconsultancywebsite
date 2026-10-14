@@ -18,12 +18,12 @@ export const translations = {
       headline1: 'Discover Clarity',
       headline2: 'with Vyana Soul',
       subtitle:
-        "Unlock the cosmic wisdom of your soul's journey with certified Akashic Reader Rekha Bala. Explore transformative courses, personalized readings, and expert consultancy — guiding you toward healing, purpose, and profound clarity.",
+        "Unlock the cosmic wisdom of your soul's journey with Akashic Reader Rekha Bala. Explore transformative courses, personalized readings, and expert consultancy — guiding you toward healing, purpose, and profound clarity.",
       cta1: 'Explore Courses',
       cta2: 'Book a Consultation',
       scroll: 'Scroll to Explore',
       stats: [
-        { value: '300+', label: 'Successful Sessions' },
+        { value: '600+', label: 'Successful Sessions' },
       ],
     },
     about: {
@@ -38,7 +38,7 @@ export const translations = {
       p4: "Through the integration of Akashic Reading, Lama Fera, and Pranic Healing, I offer a holistic approach to well-being. My work harmonizes the mind, body, and soul, allowing energy to flow freely and naturally. I believe that true healing begins within, and my mission is to guide individuals toward self-awareness, inner peace, and a higher state of consciousness.",
       tags: ['Soul-Guided Practice', 'Ethically Trained', 'Globally Trusted', 'Results-Focused'],
       certifiedTitle: 'Rekha Bala',
-      certifiedSubtitle: 'Certified Akashic Reader, Pranic Healer & Lama Fera Healer',
+      certifiedSubtitle: 'Akashic Reader, Pranic Healer & Lama Fera Healer',
       certifiedGuild: 'International Akashic Guild',
       certifiedDesc: 'Trained under globally recognized Akashic masters with years of dedicated practice.',
       founderQuote: "\"The records hold no judgment — only infinite compassion and wisdom for your soul's highest good.\"",
@@ -298,12 +298,12 @@ export const translations = {
       headline1: 'स्पष्टता खोजें',
       headline2: 'व्याण सोल के साथ',
       subtitle:
-        'प्रमाणित आकाशिक रीडर रेखा बाला के साथ अपनी आत्मा की यात्रा की ब्रह्मांडीय बुद्धि को जागृत करें। परिवर्तनकारी कोर्स, व्यक्तिगत रीडिंग और विशेषज्ञ परामर्श — आपको उपचार, उद्देश्य और गहरी स्पष्टता की ओर ले जाते हैं।',
+        'आकाशिक रीडर रेखा बाला के साथ अपनी आत्मा की यात्रा की ब्रह्मांडीय बुद्धि को जागृत करें। परिवर्तनकारी कोर्स, व्यक्तिगत रीडिंग और विशेषज्ञ परामर्श — आपको उपचार, उद्देश्य और गहरी स्पष्टता की ओर ले जाते हैं।',
       cta1: 'कोर्स देखें',
       cta2: 'परामर्श बुक करें',
       scroll: 'नीचे स्क्रॉल करें',
       stats: [
-        { value: '300+', label: 'सफल सत्र' },
+        { value: '600+', label: 'सफल सत्र' },
       ],
     },
     about: {
@@ -318,7 +318,7 @@ export const translations = {
       p4: 'आकाशिक रीडिंग, लामा फेरा और प्राणिक हीलिंग के एकीकरण के माध्यम से, मैं कल्याण के प्रति एक समग्र दृष्टिकोण प्रदान करती हूँ। मेरा कार्य मन, शरीर और आत्मा को सामंजस्यित करता है। मेरा मिशन व्यक्तियों को आत्म-जागरूकता, आंतरिक शांति और चेतना की उच्च अवस्था की ओर मार्गदर्शन करना है।',
       tags: ['आत्मा-निर्देशित अभ्यास', 'नैतिक रूप से प्रशिक्षित', 'विश्व स्तर पर विश्वसनीय', 'परिणाम-केंद्रित'],
       certifiedTitle: 'रेखा बाला',
-      certifiedSubtitle: 'प्रमाणित आकाशिक रीडर, प्राणिक हीलर & लामा फेरा हीलर',
+      certifiedSubtitle: 'आकाशिक रीडर, प्राणिक हीलर & लामा फेरा हीलर',
       certifiedGuild: 'अंतर्राष्ट्रीय आकाशिक गिल्ड',
       certifiedDesc: 'विश्व स्तर पर मान्यता प्राप्त आकाशिक गुरुओं के अधीन वर्षों के समर्पित अभ्यास के साथ प्रशिक्षित।',
       founderQuote: '"रिकॉर्ड्स में कोई निर्णय नहीं है — केवल आपकी आत्मा के उच्चतम भले के लिए अनंत करुणा और ज्ञान है।"',

@@ -102,7 +102,7 @@ export default function Testimonials() {
                   <div>
                     <div className="text-[#1E1048] dark:text-[#EDE9FF] font-semibold">{featured.name}</div>
                     <div className="text-[#7C3AED] dark:text-[#A78BFA] text-sm">{featured.role}</div>
-                    <div className="text-[#9CA3AF] text-xs mt-0.5">{featured.location} · {featured.date}</div>
+                    <div className="text-[#9CA3AF] text-xs mt-0.5">{featured.location}</div>
                   </div>
                   <div className="ml-auto">
                     <span className="px-3 py-1.5 rounded-full text-xs text-[#7C3AED] dark:text-[#A78BFA] border border-[#7C3AED]/20 dark:border-[#A78BFA]/20">
@@ -150,8 +150,7 @@ export default function Testimonials() {
                 </div>
               </div>
               <p className="text-[#6B7280] dark:text-[#9CA3AF] text-sm leading-relaxed line-clamp-3">"{t_item.review}"</p>
-              <div className="mt-4 flex items-center justify-between">
-                <span className="text-[#9CA3AF] text-xs">{t_item.date}</span>
+              <div className="mt-4 flex items-center justify-end">
                 <span className="text-xs px-2 py-1 rounded-full text-[#7C3AED] dark:text-[#A78BFA] bg-[#7C3AED]/5 dark:bg-[#A78BFA]/10">{t_item.service}</span>
               </div>
             </motion.div>

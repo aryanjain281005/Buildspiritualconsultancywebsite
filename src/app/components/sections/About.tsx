@@ -76,7 +76,7 @@ export default function About() {
           <div className="grid md:grid-cols-3 gap-8 items-center">
             <div className="text-center md:text-left">
               <div className="w-32 h-32 rounded-full overflow-hidden mx-auto md:mx-0 mb-4 border-4 border-[#7C3AED]/30">
-                <ImageWithFallback src={rekhaBalaImg} alt="Rekha Bala - Certified Akashic Reader" className="w-full h-full object-cover" />
+                <ImageWithFallback src={rekhaBalaImg} alt="Rekha Bala - Akashic Reader" className="w-full h-full object-cover" />
               </div>
               <div className="font-bold text-lg" style={{ color: '#E53E3E' }}>{t.about.certifiedTitle}</div>
               <div className="text-[#7C3AED] dark:text-[#A78BFA] text-sm">{t.about.certifiedSubtitle}</div>
